@@ -1,4 +1,5 @@
 # IMPORT
+import math
 import cv2 as cv
 import numpy as np
 import pyvisgraph as vg
@@ -61,9 +62,44 @@ def dilateObstacles (contours):
     return contoursMapped
 
 
-def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}):
+def computeTrajectory(graph, interestPoints): # BUG VA PAS VERS TOUT LES POINTS
+    
+    startingPoint = interestPoints[0]
+    path = [startingPoint]
+    interestPointsLeft = [x for x in interestPoints if x != startingPoint]
+
+    for point in interestPoints:
+        minimum = np.inf
+        index = -1
+
+        # find the closest interest point to the current interest point
+        if point != interestPoints[-1]:
+            for pointLeft, j in zip(interestPointsLeft, range(len(interestPointsLeft))):
+                dist = math.sqrt((point[X] - pointLeft[X])**2 + (point[Y] - pointLeft[Y])**2)
+                if dist < minimum:
+                    minimum = dist
+                    index = j
+        else:
+            interestPointsLeft.append(startingPoint)
+            index = 0
+
+        # compute an optimal path from the current interest point and his closest interest point using the visibility graph
+        # and add the points of this new optimal path in the total path
+        shortest = graph.shortest_path(vg.Point(point[X], point[Y]), vg.Point(interestPointsLeft[index][X], interestPointsLeft[index][Y]))
+        for j in range(1, len(shortest)):
+            path.append([shortest[j].x, shortest[j].y])
+
+        # remove the closest interest point as we finish to explore it
+        interestPointsLeft.remove([interestPointsLeft[index][X], interestPointsLeft[index][Y]])
+
+    return path
+
+
+def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, interestPoints = [], trajectory = []):
     """Plot the original contours and the dilated contours using matplotlib
        Plot the visibility graph if possibleDisplacement is given 
+       Plot the Thymio's point of interest if interestPoints is given
+       Plot the Thymio's path if the trajectory is given
 
     Parameters
     ----------
@@ -77,6 +113,12 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}):
 
     possibleDispacement : dictionary
         Each extremity point has several visible points, i.e possible destinations for the Thymio
+
+    interestPoints : list of list
+        Each point of interest has (x, y) coordinates, i.e locations where the thymio need to go
+
+    trajectory : list of list
+        Each point of the trajectory has (x, y) coordinates
 
     Returns
     -------
@@ -114,15 +156,34 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}):
             for visiblePoint in possibleDisplacement[extremity]:
                 plt.plot([extremity[X], visiblePoint[X]], [extremity[Y], visiblePoint[Y]], 'm')
 
+    
+    if interestPoints: # CARE BUG SI ON DONNE PAS EN ARGUMENT
+        for point in interestPoints:
+            plt.plot([point[X]], [point[Y]], 'kx')
+
+
+    if trajectory:
+        xTrajectory = []
+        yTrajectory = []
+
+        for point in trajectory:
+            xTrajectory.append(point[X])
+            yTrajectory.append(point[Y])
+
+        plt.plot(xTrajectory, yTrajectory, 'g')
+
     plt.show()
 
 
-# Vision's input
+# Vision's input : extremities of each obstacles
 contours = [np.array([[[504, 236]], [[495, 199]], [[380, 212]], [[438, 274]]], dtype=np.int32), 
             np.array([[[170, 195]], [[254, 275]], [[296, 238]], [[235, 194]]], dtype=np.int32), 
             np.array([[[302, 168]], [[290, 182]], [[294, 199]], [[312, 209]], [[333, 203]], [[337, 175]]], dtype=np.int32), 
             np.array([[[228, 151]], [[301, 102]], [[219,  89]]], dtype=np.int32), 
             np.array([[[481, 130]], [[457,  66]], [[360,  81]], [[434, 150]]], dtype=np.int32)]
+
+# Vision's input : position of point of interest -> CHECKER SI POINTS DE VISION IN POLYGON
+interestPoints = [[149, 286], [319, 272], [277, 151], [496, 171], [508, 69], [347, 52], [202, 77]]
 
 
 # Dilate obstacles and print them
@@ -152,3 +213,10 @@ for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
 
 #print(possibleDisplacement)
 printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
+
+
+# Compute trajectory going through all the points of interest and going back to the starting point
+trajectory = computeTrajectory(g, interestPoints)
+print(interestPoints)
+print(trajectory)
+printGlobalNavigation(contours, contoursMapped, possibleDisplacement, interestPoints, trajectory)

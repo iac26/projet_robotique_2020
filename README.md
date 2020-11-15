@@ -8,7 +8,7 @@ blablabla
 * Detection des obstacles (iacopo)
 * Detection des objectifs (iacopo)
 * Creation du chemin (romain)
-### mainloop
+### main loop
 * Detection robot (iacopo)
 * Mesure vitesse+acc (yuan)
 * Filtrage (timon)

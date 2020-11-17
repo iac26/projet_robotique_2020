@@ -10,9 +10,11 @@ X = 0
 Y = 1
 
 # CARE SI OBSTACLES TROP PROCHES LA DILATATION VA FAIRE RENTRER DEUX OBSTACLES ENTRE EUX !!
+# RETURN NON SI INTEREST POINT DANS OBSTACLE DILATE
+# DOIT MARCHER QUE SI UN POINT 
 
-def dilateObstacles (contours):
-    """Given the contours of obstacles, dilate these contours 
+def dilateObstacles (contours, scalingFactor):
+    """Given the contours of obstacles and the scaling factor, dilate these contours 
 
     Parameters
     ----------
@@ -20,6 +22,10 @@ def dilateObstacles (contours):
         The camera detect several obstacles
         Each obstacle has several extremities
         Each extremity has (x, y) coordinates
+
+    scalingFactor : float
+        Define how much the obstacle's contours should be dilated
+        scalingFactor = 1.4 -> 40 % of dilatation
 
     Returns
     -------
@@ -45,8 +51,6 @@ def dilateObstacles (contours):
 
 
     # Scale position
-    scalingFactor = 1.4         # 40 % bigger
-
     for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
         for j in range(len(obstacle)):
             contoursMapped[i][j][X] *= scalingFactor
@@ -62,18 +66,47 @@ def dilateObstacles (contours):
     return contoursMapped
 
 
+def computeVisibilityGraph(contourMapped):
+
+    # Compute the visibility graph
+    polys = [[] for _ in contoursMapped]
+
+    for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
+        for extremity in obstacle:
+            polys[i].append(vg.Point(extremity[X], extremity[Y]))
+
+    g = vg.VisGraph()
+    g.build(polys)
+
+
+    # Create a dictionary where each extremety point has several visible points i.e possible destinations
+    possibleDisplacement = {}
+
+    for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
+        for extremity, j in zip(obstacle, range(len(obstacle))):
+            visible = g.find_visible(polys[i][j])
+            possibleDisplacement[(extremity[X], extremity[Y])] = [[point.x, point.y] for point in visible]
+            visible.clear()
+
+    return g, possibleDisplacement
+
+
 def computeTrajectory(graph, interestPoints): # BUG VA PAS VERS TOUT LES POINTS
     
     startingPoint = interestPoints[0]
+    pointTravelled2 = [startingPoint]
     path = [startingPoint]
     interestPointsLeft = [x for x in interestPoints if x != startingPoint]
+    i = 0
 
-    for point in interestPoints:
+    while i != len(interestPoints):
+
         minimum = np.inf
         index = -1
+        point = pointTravelled2[i]
 
         # find the closest interest point to the current interest point
-        if point != interestPoints[-1]:
+        if i != len(interestPoints) - 1:
             for pointLeft, j in zip(interestPointsLeft, range(len(interestPointsLeft))):
                 dist = math.sqrt((point[X] - pointLeft[X])**2 + (point[Y] - pointLeft[Y])**2)
                 if dist < minimum:
@@ -90,7 +123,10 @@ def computeTrajectory(graph, interestPoints): # BUG VA PAS VERS TOUT LES POINTS
             path.append([shortest[j].x, shortest[j].y])
 
         # remove the closest interest point as we finish to explore it
+        pointTravelled2.append([interestPointsLeft[index][X], interestPointsLeft[index][Y]])
         interestPointsLeft.remove([interestPointsLeft[index][X], interestPointsLeft[index][Y]])
+
+        i += 1
 
     return path
 
@@ -143,7 +179,7 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
         yDilated.append(obstacleDilated[0][Y])
 
         plt.plot(xOriginal, yOriginal, 'b')
-        plt.plot(xDilated, yDilated, 'm')
+        plt.plot(xDilated, yDilated, 'm', alpha = 0.5)
 
         xOriginal.clear()
         xDilated.clear()
@@ -154,26 +190,22 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
     if possibleDisplacement:
         for extremity in possibleDisplacement:
             for visiblePoint in possibleDisplacement[extremity]:
-                plt.plot([extremity[X], visiblePoint[X]], [extremity[Y], visiblePoint[Y]], 'm')
+                plt.plot([extremity[X], visiblePoint[X]], [extremity[Y], visiblePoint[Y]], 'm', alpha = 0.5)
 
     
     if interestPoints: # CARE BUG SI ON DONNE PAS EN ARGUMENT
         for point in interestPoints:
-            plt.plot([point[X]], [point[Y]], 'kx')
+            plt.plot([point[X]], [point[Y]], 'kx', markersize=12)
 
 
     if trajectory:
-        xTrajectory = []
-        yTrajectory = []
-
-        for point in trajectory:
-            xTrajectory.append(point[X])
-            yTrajectory.append(point[Y])
-
-        plt.plot(xTrajectory, yTrajectory, 'g')
+        for i in range (1, len(trajectory)):
+            plt.arrow(trajectory[i-1][X], trajectory[i-1][Y], trajectory[i][X] - trajectory[i-1][X], trajectory[i][Y] - trajectory[i-1][Y], head_width=3, length_includes_head=True, color  = 'k', width = 1)
 
     plt.show()
 
+
+# --------------------------------------------------- MAIN -----------------------------------------------------
 
 # Vision's input : extremities of each obstacles
 contours = [np.array([[[504, 236]], [[495, 199]], [[380, 212]], [[438, 274]]], dtype=np.int32), 
@@ -187,36 +219,13 @@ interestPoints = [[149, 286], [319, 272], [277, 151], [496, 171], [508, 69], [34
 
 
 # Dilate obstacles and print them
-contoursMapped = dilateObstacles(contours)
+contoursMapped = dilateObstacles(contours, scalingFactor = 1.4)
 printGlobalNavigation(contours, contoursMapped)
 
-
-# Compute the visibility graph
-polys = [[] for _ in contoursMapped]
-
-for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
-    for extremity in obstacle:
-        polys[i].append(vg.Point(extremity[X], extremity[Y]))
-
-g = vg.VisGraph()
-g.build(polys)
-
-
-# Create a dictionary where each extremety point has several visible points i.e possible destinations
-possibleDisplacement = {}
-
-for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
-    for extremity, j in zip(obstacle, range(len(obstacle))):
-        visible = g.find_visible(polys[i][j])
-        possibleDisplacement[(extremity[X], extremity[Y])] = [[point.x, point.y] for point in visible]
-        visible.clear()
-
-#print(possibleDisplacement)
+# Compute the visibility graph and print it
+g, possibleDisplacement = computeVisibilityGraph(contoursMapped)
 printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
-
 
 # Compute trajectory going through all the points of interest and going back to the starting point
 trajectory = computeTrajectory(g, interestPoints)
-print(interestPoints)
-print(trajectory)
 printGlobalNavigation(contours, contoursMapped, possibleDisplacement, interestPoints, trajectory)

@@ -13,7 +13,33 @@ Y = 1
 # CARE SI OBSTACLES TROP PROCHES LA DILATATION VA FAIRE RENTRER DEUX OBSTACLES ENTRE EUX !!
 # RETURN NON SI INTEREST POINT DANS OBSTACLE DILATE
 
-def dilateObstacles (contours, scalingFactor):
+def computeCentroid(contours):
+    """Given the contours of a set of polygons, compute their respective centroids
+
+    Parameters
+    ----------
+    contours : list of list of list
+        The camera detect several obstacles/interest points
+        Each has several extremities
+        Each extremity has (x, y) coordinates
+
+    Returns
+    -------
+    centroids : list of list
+        Each polygon has a centroid composed of (x, y) coordinates
+    """
+
+    centroids = []
+    for obstacle in contours:
+        M = cv.moments(obstacle)
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+        centroids.append([cx, cy])
+
+    return centroids
+
+
+def dilateObstacles(contours, scalingFactor):
     """Given the contours of obstacles and the scaling factor, dilate these contours 
 
     Parameters
@@ -34,12 +60,7 @@ def dilateObstacles (contours, scalingFactor):
     """
 
     # Compute centroid of each obstacle
-    centroids = []
-    for obstacle in contours:
-        M = cv.moments(obstacle)
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-        centroids.append([cx, cy])
+    centroids = computeCentroid(contours)
 
 
     # For each obstacle, map the original contour points to new coordinates where (0, 0) is the centroid
@@ -132,8 +153,8 @@ def computeTrajectory(graph, interestPoints):
 
     while i != len(interestPoints):
 
-        minimum = np.inf
         index = -1
+        minimum = np.inf
         point = pointTravelled2[i]
 
         # find the closest interest point to the current interest point
@@ -143,11 +164,13 @@ def computeTrajectory(graph, interestPoints):
                 if dist < minimum:
                     minimum = dist
                     index = j
+
+        # if there is no remaining point of interest, we need to come back to the starting point
         else:
             interestPointsLeft.append(startingPoint)
             index = 0
 
-        # compute an optimal path from the current interest point and his closest interest point using the visibility graph
+        # compute an optimal path from the current interest point to his closest interest point using the visibility graph
         # and add the points of this new optimal path in the total path
         shortest = graph.shortest_path(vg.Point(point[X], point[Y]), vg.Point(interestPointsLeft[index][X], interestPointsLeft[index][Y]))
         for j in range(1, len(shortest)):

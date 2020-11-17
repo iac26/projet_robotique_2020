@@ -1,4 +1,5 @@
 # IMPORT
+# pip install pyvisgraph
 import math
 import cv2 as cv
 import numpy as np
@@ -11,7 +12,6 @@ Y = 1
 
 # CARE SI OBSTACLES TROP PROCHES LA DILATATION VA FAIRE RENTRER DEUX OBSTACLES ENTRE EUX !!
 # RETURN NON SI INTEREST POINT DANS OBSTACLE DILATE
-# DOIT MARCHER QUE SI UN POINT 
 
 def dilateObstacles (contours, scalingFactor):
     """Given the contours of obstacles and the scaling factor, dilate these contours 
@@ -67,6 +67,22 @@ def dilateObstacles (contours, scalingFactor):
 
 
 def computeVisibilityGraph(contourMapped):
+    """Given the dilated obstacles, compute the visibility graph
+
+    Parameters
+    ----------
+    contourMapped : list of list of list
+        Same structure as contours, each extremity's coordinate has been dilated
+
+    Returns
+    -------
+    g : object of class Graph
+        the visibility graph of our problem
+
+    possibleDisplacement : dictionary
+        key : tuple containing (x,y) coordinates of one of the edges of the dilated obstacles
+        value : list of all other edges visible from the key edge
+    """
 
     # Compute the visibility graph
     polys = [[] for _ in contoursMapped]
@@ -91,7 +107,22 @@ def computeVisibilityGraph(contourMapped):
     return g, possibleDisplacement
 
 
-def computeTrajectory(graph, interestPoints): # BUG VA PAS VERS TOUT LES POINTS
+def computeTrajectory(graph, interestPoints): 
+    """Given the visibility graph and the points of interest
+       Compute a path planning allowing the Thymio to pass through all the point of interest
+       and come back to his initial position
+
+    Parameters
+    ----------
+    g : object of class Graph
+        the visibility graph of our problem
+
+    Returns
+    -------
+    path : list of list
+        Each point defining the trajectory has (x, y) coordinates
+        The final trajectory is basically a line joining all point of the path
+    """
     
     startingPoint = interestPoints[0]
     pointTravelled2 = [startingPoint]
@@ -193,7 +224,7 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
                 plt.plot([extremity[X], visiblePoint[X]], [extremity[Y], visiblePoint[Y]], 'm', alpha = 0.5)
 
     
-    if interestPoints: # CARE BUG SI ON DONNE PAS EN ARGUMENT
+    if interestPoints:
         for point in interestPoints:
             plt.plot([point[X]], [point[Y]], 'kx', markersize=12)
 

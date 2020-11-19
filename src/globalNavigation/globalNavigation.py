@@ -260,7 +260,7 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
 
 
 # --------------------------------------------------- MAIN -----------------------------------------------------
-
+"""
 # Vision's input : extremities of each obstacles
 contours = [np.array([[[504, 236]], [[495, 199]], [[380, 212]], [[438, 274]]], dtype=np.int32), 
             np.array([[[170, 195]], [[254, 275]], [[296, 238]], [[235, 194]]], dtype=np.int32), 
@@ -283,3 +283,4 @@ printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
 # Compute trajectory going through all the points of interest and going back to the starting point
 trajectory = computeTrajectory(g, interestPoints)
 printGlobalNavigation(contours, contoursMapped, interestPoints = interestPoints, trajectory = trajectory)
+"""

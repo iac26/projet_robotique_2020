@@ -103,3 +103,47 @@ def detect_robot(frame, scale=1):
         
         robot_pos = [Center, angle, True]
     return robot_pos, frame
+
+
+
+
+def detect_obstacles(frame, scale=1):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    
+    
+
+    red_MIN = np.array([0, 119, 159], np.uint8)
+    red_MAX = np.array([10, 217, 255], np.uint8)
+
+            
+    #Using inRange to find the desired range
+    mask = cv2.inRange(hsv,  red_MIN, red_MAX)
+    
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
+    
+    #clean contours
+    
+    AREA_THRESH = 500
+    
+    MERGE_THRESH = 0.04
+    
+    clean_contours = []
+    
+    for cnt in contours:
+        # only take big enough contours
+        if (cv2.contourArea(cnt) >= AREA_THRESH):
+            #convex hull
+            #hull = cv2.convexHull(cnt)
+            hull = cnt
+            #lower poly approx
+            epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
+            approx = cv2.approxPolyDP(hull,epsilon,True)
+            
+            clean_contours.append(approx)
+            
+    
+    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3) 
+    for cnt in clean_contours:
+        for pt in cnt:
+            frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
+    return clean_contours, frame

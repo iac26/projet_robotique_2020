@@ -233,7 +233,7 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
         yDilated.append(obstacleDilated[0][Y])
 
         plt.plot(xOriginal, yOriginal, 'b')
-        plt.plot(xDilated, yDilated, 'm', alpha = 0.5)
+        plt.plot(xDilated, yDilated, 'm')
 
         xOriginal.clear()
         xDilated.clear()
@@ -244,7 +244,7 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
     if possibleDisplacement:
         for extremity in possibleDisplacement:
             for visiblePoint in possibleDisplacement[extremity]:
-                plt.plot([extremity[X], visiblePoint[X]], [extremity[Y], visiblePoint[Y]], 'm', alpha = 0.5)
+                plt.plot([extremity[X], visiblePoint[X]], [extremity[Y], visiblePoint[Y]], 'm')
 
     
     if interestPoints:
@@ -282,4 +282,4 @@ printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
 
 # Compute trajectory going through all the points of interest and going back to the starting point
 trajectory = computeTrajectory(g, interestPoints)
-printGlobalNavigation(contours, contoursMapped, possibleDisplacement, interestPoints, trajectory)
+printGlobalNavigation(contours, contoursMapped, interestPoints = interestPoints, trajectory = trajectory)

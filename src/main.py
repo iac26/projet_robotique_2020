@@ -1,13 +1,20 @@
+<<<<<<< Updated upstream
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import time
 
+=======
+>>>>>>> Stashed changes
 sys.path.append("vision")
 sys.path.append("filtrage")
 sys.path.append("globalNavigation")
 sys.path.append("localNavigation")
+
+import cv2
+import numpy as np
+import sys
 import vision
 import globalNavigation as gn
 

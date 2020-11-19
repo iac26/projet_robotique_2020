@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import time
 
 sys.path.append("vision")
 sys.path.append("filtrage")
@@ -9,10 +10,6 @@ sys.path.append("globalNavigation")
 sys.path.append("localNavigation")
 import vision
 import globalNavigation as gn
-
-
-
-#initialisation
 
 
 #video capture object
@@ -43,9 +40,15 @@ robot_pos, ret = vision.detect_robot(frame, scale)
 #plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 
 
+#lancer les threads
 
+
+while True:
+    #condition de fin
+    time.sleep(0.1)
 
 cap.release()
 
+    
 
 

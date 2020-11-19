@@ -27,7 +27,7 @@ for i in range(20):
 
 ret, frame = cap.read()
 
-frame = cv2.imread("vision/images/colors.png")
+#frame = cv2.imread("vision/images/colors.png")
 
 scale = vision.detect_scale(frame)
 
@@ -38,11 +38,9 @@ targets, ret = vision.detect_targets(frame, scale)
 robot_pos, ret = vision.detect_robot(frame, scale)
 
 
-final = vision.debug_output(frame, robot_pos, targets, obstacles, scale)
+#final = vision.debug_output(frame, robot_pos, targets, obstacles, scale)
 
-plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
-
-
+#plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 
 
 

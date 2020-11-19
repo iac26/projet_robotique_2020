@@ -120,8 +120,8 @@ def detect_robot(frame, scale=1):
 
 def detect_obstacles(frame, scale=1):
     frame = frame.copy()
-    red_low = np.array([0, 119, 159], np.uint8)
-    red_high = np.array([10, 217, 255], np.uint8)
+    red_low = np.array([140, 100, 100], np.uint8)
+    red_high = np.array([180, 255, 255], np.uint8)
     
     clean_contours = find_color(frame, red_low, red_high)
             
@@ -135,8 +135,8 @@ def detect_obstacles(frame, scale=1):
 
 def detect_targets(frame, scale=1):
     frame = frame.copy()
-    green_low = np.array([0, 119, 159], np.uint8)
-    green_high = np.array([10, 217, 255], np.uint8)
+    green_low = np.array([40, 50, 0], np.uint8)
+    green_high = np.array([85, 255, 150], np.uint8)
     
     clean_contours = find_color(frame, green_low, green_high)
     

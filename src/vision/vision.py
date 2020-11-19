@@ -147,3 +147,12 @@ def detect_obstacles(frame, scale=1):
         for pt in cnt:
             frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
     return clean_contours, frame
+
+
+def detect_targets(frame, scale=1):
+    return np.array([[]]), frame
+
+
+def detect_scale(frame):
+    return 1
+

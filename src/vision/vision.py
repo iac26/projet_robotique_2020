@@ -20,8 +20,8 @@ def find_color(frame, hsv_low, hsv_high):
         # only take big enough contours
         if (cv2.contourArea(cnt) >= AREA_THRESH):
             #convex hull
-            #hull = cv2.convexHull(cnt)
-            hull = cnt
+            hull = cv2.convexHull(cnt)
+            #hull = cnt
             #lower poly approx
             epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
             approx = cv2.approxPolyDP(hull,epsilon,True)
@@ -144,11 +144,10 @@ def detect_targets(frame, scale=1):
     
     for cnt in clean_contours:
         mom = cv2.moments(cnt)
-        center = np.array([0, 0])
         if mom["m00"] != 0:
-            center[0] = mom["m10"] / mom["m00"]
-            center[1] = mom["m01"] / mom["m00"]
-            centroids.append(center)
+            cx = int(mom["m10"] / mom["m00"])
+            cy = int(mom["m01"] / mom["m00"])
+            centroids.append([cx, cy])
         else:
             pass
             
@@ -157,15 +156,15 @@ def detect_targets(frame, scale=1):
     cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
     for pt in centroids:
         frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
-
-    return np.multiply(centroids, scale), frame
+    """np.multiply(centroids, scale)"""
+    return centroids, frame
 
 
 
 def detect_scale(frame):
     robot_pos, ret = detect_robot(frame)
     
-    return robot_pos[3]/57.5
+    return 1 # robot_pos[3]/57.5
 
 
 

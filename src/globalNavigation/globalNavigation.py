@@ -1,7 +1,7 @@
 # IMPORT
 # pip install pyvisgraph
 import math
-import cv2 as cv
+import cv2
 import numpy as np
 import pyvisgraph as vg
 import matplotlib.pyplot as plt
@@ -12,6 +12,7 @@ Y = 1
 
 # CARE SI OBSTACLES TROP PROCHES LA DILATATION VA FAIRE RENTRER DEUX OBSTACLES ENTRE EUX !!
 # RETURN NON SI INTEREST POINT DANS OBSTACLE DILATE
+# DILATATION PAS HOMOGENE
 
 def computeCentroid(contours):
     """Given the contours of a set of polygons, compute their respective centroids
@@ -31,7 +32,7 @@ def computeCentroid(contours):
 
     centroids = []
     for obstacle in contours:
-        M = cv.moments(obstacle)
+        M = cv2.moments(obstacle)
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
         centroids.append([cx, cy])
@@ -62,7 +63,7 @@ def dilateObstacles(contours, scalingFactor):
     # Compute centroid of each obstacle
     centroids = computeCentroid(contours)
 
-
+    
     # For each obstacle, map the original contour points to new coordinates where (0, 0) is the centroid
     contoursMapped = [[] for _ in range(len(contours))]
 
@@ -83,16 +84,53 @@ def dilateObstacles(contours, scalingFactor):
         for j in range(len(obstacle)):
             contoursMapped[i][j][X] = int(contoursMapped[i][j][X] + centroids[i][X])
             contoursMapped[i][j][Y] = int(contoursMapped[i][j][Y] + centroids[i][Y])
+    
+    """
+    # For each obstacle, map the original contour points to new coordinates where (0, 0) is the centroid
+    for obstacle, i in zip(contours, range(len(contours))):
+        for extremity, j in zip(obstacle, range(len(obstacle))):
+            contours[i][j][0] = [extremity[0][X] - centroids[i][X], extremity[0][Y] - centroids[i][Y]]
 
-    return contoursMapped
+
+    # Scale position
+    for obstacle, i in zip(contours, range(len(contours))):
+        for j in range(len(obstacle)):
+            contours[i][j][0][X] *= scalingFactor
+            contours[i][j][0][Y] *= scalingFactor
 
 
-def computeVisibilityGraph(contourMapped):
+    # Map it back to previous coordinates by adding back position of centroids
+    for obstacle, i in zip(contours, range(len(contours))):
+        for j in range(len(obstacle)):
+            contours[i][j][0][X] = int(contours[i][j][0][X] + centroids[i][X])
+            contours[i][j][0][Y] = int(contours[i][j][0][Y] + centroids[i][Y])
+
+    # If some dilated obstacles are overlapping, then merge them
+    mergedObstacles = []
+
+    for contour in contours:
+        hull = cv2.convexHull(contour)
+        epsilon = 0.01*cv2.arcLength(hull, True)
+        approx = cv2.approxPolyDP(hull, epsilon, True)
+        mergedObstacles.append(approx)
+
+
+    # FAIT UNE BONNE SORTIE
+    dilatedObstacles = [[] for _ in range(len(mergedObstacles))]
+
+    for obstacle, i in zip(mergedObstacles, range(len(mergedObstacles))):
+        for extremity in obstacle:
+            dilatedObstacles[i].append([extremity[0][X], extremity[0][Y]])
+    """
+    return contoursMapped #########################################""""
+
+
+def computeVisibilityGraph(contoursMapped):
     """Given the dilated obstacles, compute the visibility graph
 
     Parameters
     ----------
-    contourMapped : list of list of list
+    contoursMapped : list of list of list
         Same structure as contours, each extremity's coordinate has been dilated
 
     Returns
@@ -254,7 +292,7 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
 
     if trajectory:
         for i in range (1, len(trajectory)):
-            plt.arrow(trajectory[i-1][X], trajectory[i-1][Y], trajectory[i][X] - trajectory[i-1][X], trajectory[i][Y] - trajectory[i-1][Y], head_width=3, length_includes_head=True, color  = 'k', width = 1)
+            plt.arrow(trajectory[i-1][X], trajectory[i-1][Y], trajectory[i][X] - trajectory[i-1][X], trajectory[i][Y] - trajectory[i-1][Y], head_width=8, length_includes_head=True, color  = 'k', width = 2)
 
     plt.show()
 

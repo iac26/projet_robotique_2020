@@ -192,7 +192,7 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
     pt2[1] = int(pt[1] + scale*LEN*np.sin(robot_pos[1]))
     frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 0), thickness=3)
     
-    frame = cv2.polylines(frame, trajectory ,True,(0,255,255))
+    frame = cv2.polylines(frame, trajectory ,False,(0,255,255), 5)
     
     
     

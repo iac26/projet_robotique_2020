@@ -109,7 +109,7 @@ def dilateObstacles(contours, scalingFactor):
     mergedObstacles = []
 
     for contour in contours:
-        hull = cv2.convexHull(contour)
+        hull = cv2.convexHull(contour) ############################## concavhull
         epsilon = 0.01*cv2.arcLength(hull, True)
         approx = cv2.approxPolyDP(hull, epsilon, True)
         mergedObstacles.append(approx)
@@ -322,6 +322,7 @@ printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
 trajectory = computeTrajectory(g, interestPoints)
 printGlobalNavigation(contours, contoursMapped, interestPoints = interestPoints, trajectory = trajectory)
 """
-
+"""
 black_image = np.zeros((height,width,3), np.uint8)
 plt.imshow(black_image)
+"""

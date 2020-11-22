@@ -298,14 +298,14 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
 
 
 # --------------------------------------------------- MAIN -----------------------------------------------------
-"""
+
 # Vision's input : extremities of each obstacles
 contours = [np.array([[[504, 236]], [[495, 199]], [[380, 212]], [[438, 274]]], dtype=np.int32), 
             np.array([[[170, 195]], [[254, 275]], [[296, 238]], [[235, 194]]], dtype=np.int32), 
             np.array([[[302, 168]], [[290, 182]], [[294, 199]], [[312, 209]], [[333, 203]], [[337, 175]]], dtype=np.int32), 
             np.array([[[228, 151]], [[301, 102]], [[219,  89]]], dtype=np.int32), 
             np.array([[[481, 130]], [[457,  66]], [[360,  81]], [[434, 150]]], dtype=np.int32)]
-
+"""
 # Vision's input : position of point of interest -> CHECKER SI POINTS DE VISION IN POLYGON
 interestPoints = [[149, 286], [319, 272], [277, 151], [496, 171], [508, 69], [347, 52], [202, 77]]
 
@@ -322,3 +322,6 @@ printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
 trajectory = computeTrajectory(g, interestPoints)
 printGlobalNavigation(contours, contoursMapped, interestPoints = interestPoints, trajectory = trajectory)
 """
+
+black_image = np.zeros((height,width,3), np.uint8)
+plt.imshow(black_image)

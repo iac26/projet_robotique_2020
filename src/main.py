@@ -23,9 +23,9 @@ for i in range(20):
     ret, frame = cap.read()
 
 #get one frame
-ret, frame = cap.read()
+#ret, frame = cap.read()
 
-#frame = cv2.imread("vision/images/colors.png")
+frame = cv2.imread("vision/images/colors.png")
 
 scale = vision.detect_scale(frame)
 

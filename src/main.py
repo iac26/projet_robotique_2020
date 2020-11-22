@@ -67,9 +67,11 @@ value_proximity=[]
 value_acceleration=[]
 value_speed=[]
 actual_position=[0,0]
-goal=[0,0]
 actual_angle=0
-goal=trajectory[1]
+count_trajectory=1
+goal_actual=trajectory[count_trajectory]
+nb_goal=len(trajectory)
+
 # ------------------------------------------------- UPLOAD VARIABLE  --------------------------------------------------
 
 
@@ -89,6 +91,29 @@ while True:
     actual_position,actual_angle=start_thymio.get_position(cap) # upload data in global variables
     #print("actuel position est:",actual_position)
     #print("actuel angle est:",actual_angle)
-    start_thymio.follow_the_way_to_dream(actual_position,goal,actual_angle)
+    #start_thymio.follow_the_way_to_dream(actual_position,goal,actual_angle)
+    start_thymio.detect_obstacles()
+    if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
+        count_trajectory+=1
+        goal_actual=trajectory[count_trajectory]
+        print("goal has just changed, actual goal is :",goal_actual)
+        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
+        start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
+
+    elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
+        start_thymio.mission_accomplished()
+
+    else:
+        start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
+        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
+       # print("actual pos: ",actual_position)    
+       # print("goal is :",goal_actual)  
+       # 
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+                       
+
 
 cap.release()
+cv2.destroyAllWindows()

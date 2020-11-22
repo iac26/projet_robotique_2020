@@ -27,7 +27,7 @@ for i in range(20):
 #ret, frame = cap.read()
 
 frame = cv2.imread("vision/images/colors.png")
-#sizeframe
+print(frame.shape[:2])
 
 scale = vision.detect_scale(frame)
 

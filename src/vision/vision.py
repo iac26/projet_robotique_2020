@@ -157,9 +157,11 @@ def detect_targets(frame, scale=1):
             
     cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
     scaled_centroids = []
+    
     for pt in centroids:
         frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
         scaled_centroids.append(np.multiply(pt, scale).astype(int).tolist())
+        
     return scaled_centroids, frame
 
 
@@ -189,6 +191,8 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
     pt2[0] = int(pt[0] + scale*LEN*np.cos(robot_pos[1]))
     pt2[1] = int(pt[1] + scale*LEN*np.sin(robot_pos[1]))
     frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 0), thickness=3)
+    
+    frame = cv2.polylines(frame, trajectory ,True,(0,255,255))
     
     
     

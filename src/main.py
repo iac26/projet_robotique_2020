@@ -22,11 +22,16 @@ cap = cv2.VideoCapture(0)
 #read a few frames to allow the camera to adjust
 for i in range(20):
     ret, frame = cap.read()
+    time.sleep(0.1)
 
 #get one frame
-#ret, frame = cap.read()
+ret, frame = cap.read()
 
-frame = cv2.imread("vision/images/colors.png")
+#frame = cv2.imread("vision/images/colors.png")
+
+
+plt.imshow(frame)
+
 
 
 scale = vision.detect_scale(frame)
@@ -38,6 +43,8 @@ targets, ret = vision.detect_targets(frame, scale)
 #print(targets)
 
 robot_pos, ret = vision.detect_robot(frame, scale)
+
+print("robot pos: ", robot_pos)
 
 
 # ------------------------------------------------- GLOBAL NAVIGATION --------------------------------------------
@@ -82,7 +89,7 @@ nb_goal=len(trajectory)
 
 rt = start_thymio.RepeatedTimer(0.05, start_thymio.measure_sensor)
 
-
+robot_pos = []
 
 # ----------------------------------------------------------------------------------------------------------------
 #cap = cv2.VideoCapture(0)
@@ -91,7 +98,8 @@ while True:
     #condition de fin
     time.sleep(0.1)
     value_proximity,value_acceleration,value_speed=start_thymio.get_sensor_value()
-    actual_position,actual_angle=start_thymio.get_position(cap) # upload data in global variables
+    ret, frame = cap.read()
+    actual_position,actual_angle=start_thymio.get_position(frame) # upload data in global variables
     #print("actuel position est:",actual_position)
     #print("actuel angle est:",actual_angle)
     #start_thymio.follow_the_way_to_dream(actual_position,goal,actual_angle)
@@ -100,18 +108,21 @@ while True:
         count_trajectory+=1
         goal_actual=trajectory[count_trajectory]
         print("goal has just changed, actual goal is :",goal_actual)
-        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
-        start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
+        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
+        #start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
 
     elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
         start_thymio.mission_accomplished()
 
     else:
-        start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
-        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
+        #start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
+        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
        # print("actual pos: ",actual_position)    
        # print("goal is :",goal_actual)  
        # 
+
+    final = vision.debug_output(frame, robot_pos, targets, obstacles, trajectory, scale)
+    cv2.imshow('frame',final)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

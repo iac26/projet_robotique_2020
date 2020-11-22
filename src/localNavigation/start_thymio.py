@@ -83,11 +83,12 @@ def get_sensor_value():
 
 
 
-def get_position(cap):
+def get_position(frame):
     global actual_angle
     global actual_position
+    global robot_pos
     #get one frame
-    ret, frame = cap.read()
+    
     scale = vision.detect_scale(frame)
     robot_pos, ret = vision.detect_robot(frame, scale)
     #get one frame
@@ -99,8 +100,7 @@ def get_position(cap):
     #print(targets)
 
 
-    final = vision.debug_output(frame, robot_pos, targets, obstacles, scale)
-    cv2.imshow('frame',final)
+
 
 
 

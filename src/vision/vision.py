@@ -41,8 +41,8 @@ def find_color(frame, hsv_low, hsv_high):
 
 #returns an array [numpy array pos, angle, visible T/F]
 def detect_robot(frame, scale=1):
-    blue_low = np.array([80, 110, 79], np.uint8)
-    blue_high = np.array([135, 255, 255], np.uint8)
+    blue_low = np.array([50, 110, 60], np.uint8)
+    blue_high = np.array([150, 255, 255], np.uint8)
     frame = frame.copy()
     
     clean_contours = find_color(frame, blue_low, blue_high)
@@ -122,7 +122,7 @@ def detect_robot(frame, scale=1):
     return robot_pos, frame
 
 
-DIL_COEFF = 150
+DIL_COEFF = 80
 
 def detect_obstacles(frame, scale=1):
     frame = frame.copy()

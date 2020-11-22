@@ -167,7 +167,7 @@ def detect_targets(frame, scale=1):
 def detect_scale(frame):
     robot_pos, ret = detect_robot(frame)
     
-    return robot_pos[3]/57.5
+    return 57.5/robot_pos[3]
 
 
 

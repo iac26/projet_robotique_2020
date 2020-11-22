@@ -126,11 +126,13 @@ def detect_obstacles(frame, scale=1):
     clean_contours = find_color(frame, red_low, red_high)
             
     
-    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3) 
+    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
+    scaled_contours = []
     for cnt in clean_contours:
         for pt in cnt:
             frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
-    return np.multiply(clean_contours, scale).astype(int), frame
+        scaled_contours.append(np.multiply(cnt, scale).astype(int))
+    return scaled_contourss, frame
 
 
 def detect_targets(frame, scale=1):

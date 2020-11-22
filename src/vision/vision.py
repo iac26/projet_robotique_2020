@@ -210,11 +210,12 @@ def detect_targets(frame, scale=1):
     return scaled_centroids, frame
 
 
+ROBOT_LEN = 57.5
 
 def detect_scale(frame):
     robot_pos, ret = detect_robot(frame)
-    if robot[2]:
-        return 57.5/robot_pos[3]
+    if robot_pos[2]:
+        return ROBOT_LEN/robot_pos[3]
     else:
         return 1
 

@@ -132,7 +132,7 @@ def detect_obstacles(frame, scale=1):
         for pt in cnt:
             frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
         scaled_contours.append(np.multiply(cnt, scale).astype(int))
-    return scaled_contourss, frame
+    return scaled_contours, frame
 
 
 def detect_targets(frame, scale=1):
@@ -156,10 +156,11 @@ def detect_targets(frame, scale=1):
         
             
     cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
+    scaled_centroids = []
     for pt in centroids:
         frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
-    centroids = np.multiply(centroids, scale).astype(int)
-    return centroids, frame
+    scaled_centroids.append(np.multiply(pt, scale).astype(int))
+    return scaled_centroids, frame
 
 
 

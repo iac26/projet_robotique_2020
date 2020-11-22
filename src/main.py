@@ -17,7 +17,7 @@ import start_thymio
 # -------------------------------------------------- VISION INIT --------------------------------------------------
 
 #video capture object
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(0)
 
 #read a few frames to allow the camera to adjust
 for i in range(20):
@@ -26,40 +26,43 @@ for i in range(20):
 #get one frame
 ret, frame = cap.read()
 
-#frame = cv2.imread("vision/images/colors.png")
+frame = cv2.imread("vision/images/colors.png")
 #sizeframe
 
 scale = vision.detect_scale(frame)
 
 obstacles, ret = vision.detect_obstacles(frame, scale)
-#print(obstacles)
+print(obstacles)
 
 targets, ret = vision.detect_targets(frame, scale)
 #print(targets)
 
 robot_pos, ret = vision.detect_robot(frame, scale)
 
-final = vision.debug_output(frame, robot_pos, targets, obstacles, [], scale)
-
-plt.figure()
-plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
-
 
 # ------------------------------------------------- GLOBAL NAVIGATION --------------------------------------------
 
-dilatedObstacles = globalNavigation.dilateObstacles(obstacles, scalingFactor = 1.8) ########## scaling
+#dilatedObstacles = globalNavigation.dilateObstacles(obstacles, scalingFactor = 1.8) ########## scaling
 #print(dilatedObstacles)
 
-visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(dilatedObstacles)
+visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
 
 targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
 
 trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
 print("traject: ",trajectory)
 
+
+final = vision.debug_output(frame, robot_pos, targets, obstacles, trajectory, scale)
+
+plt.figure()
+plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
+
+
+
 plt.figure()
 plt.gca().invert_yaxis()
-globalNavigation.printGlobalNavigation(obstacles, dilatedObstacles, interestPoints = targets, trajectory = trajectory)
+globalNavigation.printGlobalNavigation(obstacles, obstacles, interestPoints = targets, trajectory = trajectory)
 
 # ------------------------------------------------- CONNEXION --------------------------------------------------
 start_thymio.connexion_thymio()

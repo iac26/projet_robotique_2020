@@ -105,7 +105,7 @@ def detect_robot(frame, scale=1):
         
         frame = cv2.line(frame, (int(D[0]), int(D[1])), (int(A[0]), int(A[1])), color=(0, 0, 255), thickness=1)
         frame = cv2.circle(frame, (int(Center[0]), int(Center[1])), radius=5, color=(0, 0, 255), thickness=-1)
-        Center = Center*scale
+        Center = np.multiply(Center, scale).astype(int)
         text =  "position: ({:0.2f}, {:0.2f}) angle: {:0.4f}".format(Center[0], Center[1], angle)
         font = cv2.FONT_HERSHEY_SIMPLEX 
         cv2.putText(frame, text, (10, 50), font, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
@@ -130,7 +130,7 @@ def detect_obstacles(frame, scale=1):
     for cnt in clean_contours:
         for pt in cnt:
             frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
-    return np.multiply(clean_contours, scale), frame
+    return np.multiply(clean_contours, scale).astype(int), frame
 
 
 def detect_targets(frame, scale=1):
@@ -156,7 +156,7 @@ def detect_targets(frame, scale=1):
     cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
     for pt in centroids:
         frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
-    """np.multiply(centroids, scale)"""
+    centroids = np.multiply(centroids, scale).astype(int)
     return centroids, frame
 
 
@@ -168,7 +168,7 @@ def detect_scale(frame):
 
 
 
-def debug_output(frame, robot_pos, targets, obstacles, scale):
+def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
     frame = frame.copy()
     for pt in targets:
         pt = np.floor(np.divide(pt, scale)).astype(int)
@@ -188,7 +188,11 @@ def debug_output(frame, robot_pos, targets, obstacles, scale):
     frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 0), thickness=3)
     
     
+    
+    
     return frame
+
+
     
 
 

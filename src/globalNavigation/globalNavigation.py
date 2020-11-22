@@ -323,6 +323,7 @@ trajectory = computeTrajectory(g, interestPoints)
 printGlobalNavigation(contours, contoursMapped, interestPoints = interestPoints, trajectory = trajectory)
 """
 """
+height, width = img.shape[:2]
 black_image = np.zeros((height,width,3), np.uint8)
 plt.imshow(black_image)
 """

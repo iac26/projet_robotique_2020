@@ -159,7 +159,7 @@ def detect_targets(frame, scale=1):
     scaled_centroids = []
     for pt in centroids:
         frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
-    scaled_centroids.append(np.multiply(pt, scale).astype(int).tolist())
+        scaled_centroids.append(np.multiply(pt, scale).astype(int).tolist())
     return scaled_centroids, frame
 
 

@@ -109,7 +109,7 @@ def dilateObstacles(contours, scalingFactor):
     mergedObstacles = []
 
     for contour in contours:
-        hull = cv2.convexHull(contour)
+        hull = cv2.convexHull(contour) ############################## concavhull
         epsilon = 0.01*cv2.arcLength(hull, True)
         approx = cv2.approxPolyDP(hull, epsilon, True)
         mergedObstacles.append(approx)
@@ -260,14 +260,14 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
 
     for obstacleOriginal, obstacleDilated in zip(contours, contoursMapped):
         for extremityOriginal, extremityDilated in zip(obstacleOriginal, obstacleDilated):
-            xOriginal.append(extremityOriginal[0][X])
+            xOriginal.append(extremityOriginal[X])
             xDilated.append(extremityDilated[X])
-            yOriginal.append(extremityOriginal[0][Y])
+            yOriginal.append(extremityOriginal[Y])
             yDilated.append(extremityDilated[Y])
 
-        xOriginal.append(obstacleOriginal[0][0][X])
+        xOriginal.append(obstacleOriginal[0][X])
         xDilated.append(obstacleDilated[0][X])
-        yOriginal.append(obstacleOriginal[0][0][Y])
+        yOriginal.append(obstacleOriginal[0][Y])
         yDilated.append(obstacleDilated[0][Y])
 
         plt.plot(xOriginal, yOriginal, 'b')
@@ -298,14 +298,14 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
 
 
 # --------------------------------------------------- MAIN -----------------------------------------------------
-"""
+
 # Vision's input : extremities of each obstacles
 contours = [np.array([[[504, 236]], [[495, 199]], [[380, 212]], [[438, 274]]], dtype=np.int32), 
             np.array([[[170, 195]], [[254, 275]], [[296, 238]], [[235, 194]]], dtype=np.int32), 
             np.array([[[302, 168]], [[290, 182]], [[294, 199]], [[312, 209]], [[333, 203]], [[337, 175]]], dtype=np.int32), 
             np.array([[[228, 151]], [[301, 102]], [[219,  89]]], dtype=np.int32), 
             np.array([[[481, 130]], [[457,  66]], [[360,  81]], [[434, 150]]], dtype=np.int32)]
-
+"""
 # Vision's input : position of point of interest -> CHECKER SI POINTS DE VISION IN POLYGON
 interestPoints = [[149, 286], [319, 272], [277, 151], [496, 171], [508, 69], [347, 52], [202, 77]]
 
@@ -321,4 +321,9 @@ printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
 # Compute trajectory going through all the points of interest and going back to the starting point
 trajectory = computeTrajectory(g, interestPoints)
 printGlobalNavigation(contours, contoursMapped, interestPoints = interestPoints, trajectory = trajectory)
+"""
+"""
+height, width = img.shape[:2]
+black_image = np.zeros((height,width,3), np.uint8)
+plt.imshow(black_image)
 """

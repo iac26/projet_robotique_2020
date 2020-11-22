@@ -24,10 +24,14 @@ for i in range(20):
     ret, frame = cap.read()
 
 #get one frame
-ret, frame = cap.read()
+#ret, frame = cap.read()
 
 frame = cv2.imread("vision/images/colors.png")
+<<<<<<< HEAD
+print(frame.shape[:2])
+=======
 #sizeframe
+>>>>>>> 49b56a36903e26308c5c50c900af746e44c7d156
 
 scale = vision.detect_scale(frame)
 
@@ -39,7 +43,10 @@ targets, ret = vision.detect_targets(frame, scale)
 
 robot_pos, ret = vision.detect_robot(frame, scale)
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 49b56a36903e26308c5c50c900af746e44c7d156
 # ------------------------------------------------- GLOBAL NAVIGATION --------------------------------------------
 
 #dilatedObstacles = globalNavigation.dilateObstacles(obstacles, scalingFactor = 1.8) ########## scaling
@@ -52,14 +59,20 @@ targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of 
 trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
 print("traject: ",trajectory)
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 49b56a36903e26308c5c50c900af746e44c7d156
 final = vision.debug_output(frame, robot_pos, targets, obstacles, trajectory, scale)
 
 plt.figure()
 plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> 49b56a36903e26308c5c50c900af746e44c7d156
 plt.figure()
 plt.gca().invert_yaxis()
 globalNavigation.printGlobalNavigation(obstacles, obstacles, interestPoints = targets, trajectory = trajectory)

@@ -1,15 +1,9 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 
-def find_color(frame, hsv_low, hsv_high):
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    
-
-    #Using inRange to find the desired range
-    mask = cv2.inRange(hsv,  hsv_low, hsv_high)
-    
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
+def cleanup_contours(contours):
     #clean contours
     AREA_THRESH = 500
     MERGE_THRESH = 0.04
@@ -27,16 +21,28 @@ def find_color(frame, hsv_low, hsv_high):
             approx = cv2.approxPolyDP(hull,epsilon,True)
             
             clean_contours.append(approx)
+            
     return clean_contours
+
+
+def find_color(frame, hsv_low, hsv_high):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    
+
+    #Using inRange to find the desired range
+    mask = cv2.inRange(hsv,  hsv_low, hsv_high)
+    
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
     
     
+    return cleanup_contours(contours)
     
 
 
 #returns an array [numpy array pos, angle, visible T/F]
 def detect_robot(frame, scale=1):
-    blue_low = np.array([83, 110, 110], np.uint8)
-    blue_high = np.array([120, 255, 255], np.uint8)
+    blue_low = np.array([80, 110, 79], np.uint8)
+    blue_high = np.array([135, 255, 255], np.uint8)
     frame = frame.copy()
     
     clean_contours = find_color(frame, blue_low, blue_high)
@@ -116,7 +122,7 @@ def detect_robot(frame, scale=1):
     return robot_pos, frame
 
 
-
+DIL_COEFF = 150
 
 def detect_obstacles(frame, scale=1):
     frame = frame.copy()
@@ -125,13 +131,52 @@ def detect_obstacles(frame, scale=1):
     
     clean_contours = find_color(frame, red_low, red_high)
             
+    dil_contour = []
+    for cnt in clean_contours:
+        mom = cv2.moments(cnt)
+        ncnt = []
+        if mom["m00"] != 0:
+            cx = int(mom["m10"] / mom["m00"])
+            cy = int(mom["m01"] / mom["m00"])
+            C = np.array([cx, cy])
+            for pt in cnt:
+                N = pt-C
+                N = N/np.linalg.norm(N)
+                npt = (pt+DIL_COEFF*N).astype(int)
+                ncnt.append(npt)
+            dil_contour.append(np.array(ncnt))
+        else:
+            pass
+        
+        
     
     cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
+    
+    black = np.zeros(frame.shape[:2], dtype=np.uint8)
+    
+    for i in range(len(dil_contour)):
+        cv2.drawContours(black, dil_contour, i, (255), -1)
+        
+    
+    
+    plt.imshow(black, cmap="gray")
+    
+    
+    #find contours
+    
+    contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
+    
+    clean_dil_contours = cleanup_contours(contours)
+
     scaled_contours = []
-    for cnt in clean_contours:
+    for cnt in clean_dil_contours:
+        ncnt = []
         for pt in cnt:
             frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
-        scaled_contours.append(np.multiply(cnt, scale).astype(int))
+            ncnt.append(pt[0])
+        scaled_contours.append(np.multiply(ncnt, scale).astype(int))
+    
+    
     return scaled_contours, frame
 
 
@@ -157,9 +202,11 @@ def detect_targets(frame, scale=1):
             
     cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
     scaled_centroids = []
+    
     for pt in centroids:
         frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
         scaled_centroids.append(np.multiply(pt, scale).astype(int).tolist())
+        
     return scaled_centroids, frame
 
 
@@ -180,7 +227,7 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
     for cnt in obstacles:
         for pt in cnt:
             pt = np.floor(np.divide(pt, scale)).astype(int)
-            frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
+            frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
     
     pt = np.floor(np.divide(robot_pos[0], scale)).astype(int)
     frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(255, 0, 0), thickness=-1)
@@ -189,6 +236,17 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
     pt2[0] = int(pt[0] + scale*LEN*np.cos(robot_pos[1]))
     pt2[1] = int(pt[1] + scale*LEN*np.sin(robot_pos[1]))
     frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 0), thickness=3)
+    
+    fst = 0
+    
+    trajectory = np.divide(trajectory, scale).astype(int)
+    for pt in trajectory:
+        if fst == 0:
+            fst = 1
+            lpt = pt  
+        else:
+            frame = cv2.line(frame, (int(lpt[0]), int(lpt[1])), (int(pt[0]), int(pt[1])), color=(255, 0, 255), thickness=3) 
+        lpt = pt
     
     
     

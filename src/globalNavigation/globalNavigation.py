@@ -257,6 +257,9 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
     yOriginal = []
     xDilated = []
     yDilated = []
+    
+    
+    print("cmapped:", contoursMapped)
 
     for obstacleOriginal, obstacleDilated in zip(contours, contoursMapped):
         for extremityOriginal, extremityDilated in zip(obstacleOriginal, obstacleDilated):
@@ -271,6 +274,8 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
         yDilated.append(obstacleDilated[0][Y])
 
         plt.plot(xOriginal, yOriginal, 'b')
+        print("xdil:", xDilated)
+        print("ydil:", yDilated)
         plt.plot(xDilated, yDilated, 'm')
 
         xOriginal.clear()

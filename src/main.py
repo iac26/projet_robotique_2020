@@ -27,7 +27,7 @@ for i in range(20):
 #get one frame
 ret, frame = cap.read()
 
-#frame = cv2.imread("vision/images/colors.png")
+frame = cv2.imread("vision/images/colors.png")
 
 
 plt.imshow(frame)
@@ -36,13 +36,19 @@ plt.imshow(frame)
 
 scale = vision.detect_scale(frame)
 
-obstacles, ret = vision.detect_obstacles(frame, scale)
-print(obstacles)
+dilated_obstacles, obstacles, ret = vision.detect_obstacles(frame, scale)
+print(dilated_obstacles)
 
 targets, ret = vision.detect_targets(frame, scale)
 #print(targets)
 
-robot_pos, ret = vision.detect_robot(frame, scale)
+while True:
+
+    robot_pos, ret = vision.detect_robot(frame, scale)
+    
+    if robot_pos[2]:
+        break
+    ret, frame = cap.read()
 
 print("robot pos: ", robot_pos)
 
@@ -52,7 +58,7 @@ print("robot pos: ", robot_pos)
 #dilatedObstacles = globalNavigation.dilateObstacles(obstacles, scalingFactor = 1.8) ########## scaling
 #print(dilatedObstacles)
 
-visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
+visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(dilated_obstacles)
 
 targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
 
@@ -60,7 +66,7 @@ trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
 print("traject: ",trajectory)
 
 
-final = vision.debug_output(frame, robot_pos, targets, obstacles, trajectory, scale)
+final = vision.debug_output(frame, robot_pos, targets, dilated_obstacles, trajectory, scale)
 
 plt.figure()
 plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
@@ -68,7 +74,7 @@ plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 
 plt.figure()
 plt.gca().invert_yaxis()
-globalNavigation.printGlobalNavigation(obstacles, obstacles, interestPoints = targets, trajectory = trajectory)
+globalNavigation.printGlobalNavigation(obstacles, dilated_obstacles, interestPoints = targets, trajectory = trajectory)
 
 # ------------------------------------------------- CONNEXION --------------------------------------------------
 start_thymio.connexion_thymio()

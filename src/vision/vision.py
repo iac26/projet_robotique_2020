@@ -142,7 +142,7 @@ def detect_obstacles(frame, scale=1):
             for pt in cnt:
                 N = pt-C
                 N = N/np.linalg.norm(N)
-                npt = (pt+DIL_COEFF*N).astype(int)
+                npt = (pt+scale*DIL_COEFF*N).astype(int)
                 ncnt.append(npt)
             dil_contour.append(np.array(ncnt))
         else:

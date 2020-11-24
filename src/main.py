@@ -108,7 +108,8 @@ while True:
         count_trajectory+=1
         goal_actual=trajectory[count_trajectory]
         print("goal has just changed, actual goal is :",goal_actual)
-        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
+        start_thymio.change_mode(goal_actual)
+        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
         #start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
 
     elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
@@ -116,10 +117,10 @@ while True:
 
     else:
         #start_thymio.local_avoidance (actual_position,goal_actual,actual_angle)
-        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
+        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
        # print("actual pos: ",actual_position)    
        # print("goal is :",goal_actual)  
-       # 
+        start_thymio.change_mode(goal_actual)
 
     final = vision.debug_output(frame, robot_pos, targets, obstacles, trajectory, scale)
     cv2.imshow('frame',final)

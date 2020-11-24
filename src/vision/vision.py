@@ -131,10 +131,12 @@ def detect_obstacles(frame, scale=1):
     
     clean_contours = find_color(frame, red_low, red_high)
             
+    original_contours = []
     dil_contour = []
     for cnt in clean_contours:
         mom = cv2.moments(cnt)
         ncnt = []
+        ocnt = []
         if mom["m00"] != 0:
             cx = int(mom["m10"] / mom["m00"])
             cy = int(mom["m01"] / mom["m00"])
@@ -142,9 +144,11 @@ def detect_obstacles(frame, scale=1):
             for pt in cnt:
                 N = pt-C
                 N = N/np.linalg.norm(N)
-                npt = (pt+DIL_COEFF*N).astype(int)
+                npt = (pt+DIL_COEFF/scale*N).astype(int)
                 ncnt.append(npt)
+                ocnt.append(pt[0])
             dil_contour.append(np.array(ncnt))
+            original_contours.append(np.multiply(ocnt, scale).astype(int))
         else:
             pass
         
@@ -177,7 +181,7 @@ def detect_obstacles(frame, scale=1):
         scaled_contours.append(np.multiply(ncnt, scale).astype(int))
     
     
-    return scaled_contours, frame
+    return scaled_contours, original_contours, frame
 
 
 def detect_targets(frame, scale=1):
@@ -255,6 +259,8 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
     
     
     return frame
+
+
 
 
     

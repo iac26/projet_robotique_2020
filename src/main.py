@@ -14,6 +14,12 @@ import globalNavigation
 import start_thymio
 
 
+
+
+
+
+
+
 # -------------------------------------------------- VISION INIT --------------------------------------------------
 
 #video capture object

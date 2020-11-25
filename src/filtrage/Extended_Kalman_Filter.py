@@ -17,14 +17,12 @@ def estimate(measurements):
         x[2] = x[2]
         x[3] = x[3]
         x[4] = 0.0000001 # avoid numerical issues in Jacobians
-        dstate.append(0)
     else: # otherwise
         x[0] = x[0] + (x[3]/x[4]) * (np.sin(x[4]*dt+x[2]) - np.sin(x[2]))
         x[1] = x[1] + (x[3]/x[4]) * (-np.cos(x[4]*dt+x[2])+ np.cos(x[2]))
         x[2] = (x[2] + x[4]*dt + np.pi) % (2.0*np.pi) - np.pi
         x[3] = x[3]
         x[4] = x[4]
-        dstate.append(1)
     print('x =')
     print(x)
 
@@ -82,7 +80,6 @@ class Kalman():
         self.numstates=5 # States
 
         # Initaila Variables
-        self.dstate = []
         self.camera_avilable = False
 
         # We have different frequency of sensor readings.

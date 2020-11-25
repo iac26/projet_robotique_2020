@@ -4,65 +4,9 @@ from sympy import Symbol, symbols, Matrix, sin, cos
 
 measurements = 0
 x = 0
-Camera_avilable = 0
-
-def init():
-
-
-    # Number of states
-    numstates=5 # States
-
-    # Initaila Variables
-    dstate = []
-    Camera_avilable = True
-
-    # We have different frequency of sensor readings.
-    dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
-    dtCamera=1.0/10.0 # Sample Rate of Camera is 10Hz
-
-    # Initial Uncertainty P0
-    P = np.diag([1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
-    print('P = ')
-    print(P, P.shape)
-
-    # Process Noise Covariance Matrix Q
-    sCamera     = 0.5*8.8*dt**2  # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
-    sCourse  = 0.1*dt # assume 0.1rad/s as maximum turn rate for the thymio ROBOT
-    sVelocity= 8.8*dt # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
-    sYaw     = 1.0*dt # assume 1.0rad/s2 as the maximum turn rate acceleration for the thymio ROBOT
-    Q = np.diag([sCamera**2, sCamera**2, sCourse**2, sVelocity**2, sYaw**2])
-    print('Q = ')
-    print(Q, Q.shape)
-
-    # Measurement Noise Covariance R
-    varCamera = 6.0 # Standard Deviation of Camera Measurement
-    varrot = 0.1 # Standard Deviation of rotation Measurement
-    varspeed = 1.0 # Standard Deviation of the speed measurement
-    varyaw = 0.1 # Standard Deviation of the yawrate measurement
-    R = np.diag([varCamera**2, varCamera**2, varrot**2, varspeed**2, varyaw**2])
-    print('R =')
-    print(R, R.shape)
-
-    # Identity Matrix I
-    I = np.eye(numstates)
-    print('I =')
-    print(I, I.shape)
-
-
-    # Initial State Vector
-    # The states are (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])
-    x = np.matrix([[90, 80, 45/180.0*np.pi, 1.1, 0.1]]).T
-    print('x =')
-    print(x, x.shape)
-
-    # Initial measurement vector  (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])  Will be mesured
-    measurements = np.matrix([[120, 130, 90/180.0*np.pi, 1, 0.2]]).T
-    # Lenth of the measurement
-    print('measurements = ')
-    print(measurements, measurements.shape)
+camera_avilable = 0
 
 def estimate(measurements):
-    global x
     # Time Update (Prediction)
     # ========================
     # Project the state ahead
@@ -109,7 +53,7 @@ def estimate(measurements):
     print('hx = ')
     print(hx)
 
-    if Camera_avilable: # with 10Hz, every 5th step
+    if camera_avilable: # with 10Hz, every 5th step
         JH = np.diag([1.0, 1.0, 1.0, 1.0, 1.0])
     else: # every other step
         JH = np.diag([0.0, 0.0, 0.0, 1.0, 1.0])  
@@ -138,11 +82,11 @@ class Kalman():
         self.numstates=5 # States
 
         # Initaila Variables
-        dstate = []
-        Camera_avilable = False
+        self.dstate = []
+        self.camera_avilable = False
 
         # We have different frequency of sensor readings.
-        dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
+        self.dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
         dtCamera=1.0/10.0 # Sample Rate of Camera is 10Hz
 
         # Initial Uncertainty P0
@@ -199,7 +143,7 @@ class Kalman():
         robot_phi = robot_state[1]
         speed = thymio_data[0]
         yawrate = thymio_data[1]
-        self.Camera_avilable = robot_state[2]
+        self.camera_avilable = robot_state[2]
         self.measurements = [robot_x, robot_y, robot_phi, speed, yawrate]
 
         

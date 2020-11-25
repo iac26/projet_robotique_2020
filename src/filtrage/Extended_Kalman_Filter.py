@@ -8,6 +8,7 @@ Camera_avilable = 0
 
 def init():
 
+
     # Number of states
     numstates=5 # States
 
@@ -59,8 +60,6 @@ def init():
     # Lenth of the measurement
     print('measurements = ')
     print(measurements, measurements.shape)
-
-
 
 def estimate(measurements):
     global x
@@ -130,3 +129,82 @@ def estimate(measurements):
 
 init()
 estimate(measurements)
+
+
+class Kalman():
+
+    def __init__(self):
+         # Number of states
+        self.numstates=5 # States
+
+        # Initaila Variables
+        dstate = []
+        Camera_avilable = False
+
+        # We have different frequency of sensor readings.
+        dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
+        dtCamera=1.0/10.0 # Sample Rate of Camera is 10Hz
+
+        # Initial Uncertainty P0
+        self.P = np.diag([1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
+        print('P = ')
+        print(P, P.shape)
+
+        # Process Noise Covariance Matrix Q
+        sCamera     = 0.5*8.8*dt**2  # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
+        sCourse  = 0.1*dt # assume 0.1rad/s as maximum turn rate for the thymio ROBOT
+        sVelocity= 8.8*dt # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
+        sYaw     = 1.0*dt # assume 1.0rad/s2 as the maximum turn rate acceleration for the thymio ROBOT
+        self.Q = np.diag([sCamera**2, sCamera**2, sCourse**2, sVelocity**2, sYaw**2])
+        print('Q = ')
+        print(Q, Q.shape)
+
+        # Measurement Noise Covariance R
+        varCamera = 6.0 # Standard Deviation of Camera Measurement
+        varrot = 0.1 # Standard Deviation of rotation Measurement
+        varspeed = 1.0 # Standard Deviation of the speed measurement
+        varyaw = 0.1 # Standard Deviation of the yawrate measurement
+        self.R = np.diag([varCamera**2, varCamera**2, varrot**2, varspeed**2, varyaw**2])
+        print('R =')
+        print(R, R.shape)
+
+        # Identity Matrix I
+        self.I = np.eye(numstates)
+        print('I =')
+        print(I, I.shape)
+
+
+        # Initial State Vector
+        # The states are (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])
+        self.x = np.matrix([[90, 80, 45/180.0*np.pi, 1.1, 0.1]]).T
+        print('x =')
+        print(x, x.shape)
+        #[np.array(x,y), angle, t/f, robot_length]
+        #
+        # Initial measurement vector  (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])  Will be mesured
+        self.measurements = np.matrix([[120, 130, 90/180.0*np.pi, 1, 0.2]]).T
+        # Lenth of the measurement
+        print('measurements = ')
+        print(measurements, measurements.shape)
+
+        
+
+    def estimate(self, measurements):
+        print(self.numstates)
+
+
+    def update_measurements(self, robot_state, thymio_data):
+        robot_x = robot_state[0][0]
+        robot_y = robot_state[0][1]
+        robot_phi = robot_state[1]
+        speed = thymio_data[0]
+        yawrate = thymio_data[1]
+        self.Camera_avilable = robot_state[2]
+        self.measurements = [robot_x, robot_y, robot_phi, speed, yawrate]
+
+        
+
+
+    def get_result(self):
+        return self.result
+

@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Symbol, symbols, Matrix, sin, cos
 
+
+
+#def kalman.init()
 # Number of states
 numstates=5 # States
 
@@ -32,11 +35,7 @@ varCamera = 6.0 # Standard Deviation of Camera Measurement
 varrot = 0.1 # Standard Deviation of rotation Measurement
 varspeed = 1.0 # Standard Deviation of the speed measurement
 varyaw = 0.1 # Standard Deviation of the yawrate measurement
-R = np.matrix([[varCamera**2, 0.0, 0.0, 0.0, 0.0],
-               [0.0, varCamera**2, 0.0, 0.0, 0.0],
-               [0.0, 0.0, varrot**2, 0.0, 0.0],
-               [0.0, 0.0, 0.0, varspeed**2, 0.0],
-               [0.0, 0.0, 0.0, 0.0, varyaw**2]])
+R = np.diag([varCamera**2, varCamera**2, varrot**2, varspeed**2, varyaw**2])
 print('R =')
 print(R, R.shape)
 
@@ -52,11 +51,7 @@ x = np.matrix([[90, 80, 45/180.0*np.pi, 1.1, 0.1]]).T
 print('x =')
 print(x, x.shape)
 
-
-
-
-
-# Measurement vector  (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])  Will be mesured
+# Initial measurement vector  (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])  Will be mesured
 measurements = np.matrix([[120, 130, 90/180.0*np.pi, 1, 0.2]]).T
 # Lenth of the measurement
 print('measurements = ')
@@ -69,19 +64,7 @@ print(measurements, measurements.shape)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+#def kalman.estimate()
 # Time Update (Prediction)
 # ========================
 # Project the state ahead

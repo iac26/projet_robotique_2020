@@ -2,8 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Symbol, symbols, Matrix, sin, cos
 
+measurements = 0
+x = 0
+Camera_avilable = 0
 
 def init():
+
     # Number of states
     numstates=5 # States
 
@@ -58,7 +62,8 @@ def init():
 
 
 
-def estimate():
+def estimate(measurements):
+    global x
     # Time Update (Prediction)
     # ========================
     # Project the state ahead
@@ -124,4 +129,4 @@ def estimate():
 
 
 init()
-estimate()
+estimate(measurements)

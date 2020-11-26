@@ -9,12 +9,20 @@ camera_avilable = 0
 
 class Kalman():
 
-    def __init__(self):
-         # Number of states
-        self.numstates=5 # States
+    def __init__(self):       
 
-        # Initaila Variables
+        # Initailise Variables
         self.camera_avilable = False
+        self.dt = 0
+        self.P = 0
+        self.Q = 0
+        self.R = 0
+        self.I = 0
+        self.x = 0
+        self.measurements = 0
+        self.JA = 0
+        self.JH = 0
+        numstates = 5 # number of states (px, py, fi, v, w)
 
         # We have different frequency of sensor readings.
         self.dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
@@ -44,7 +52,7 @@ class Kalman():
         print(R, R.shape)
 
         # Identity Matrix I
-        self.I = np.eye(self.numstates)
+        self.I = np.eye(numstates)
         print('I =')
         print(I, I.shape)
 
@@ -63,11 +71,21 @@ class Kalman():
         print(measurements, measurements.shape)
 
     def estimate(self, measurements):
+        
+        # Copy variabel for better understanding of formulas
+        P = self.P  #100%
+        Q = self.Q  #100%
+        R = self.R  #100%
+        I = self.I  #100%
+        x = self.x  #100%
+        JA = self.JA  #100%
+        JH = self.JH  #100%
+
         # Time Update (Prediction)
         # ========================
         # Project the state ahead
         # see "Dynamic Matrix"
-        if np.abs(measurements[4])<0.0001: # Driving straight
+        if np.abs(self.measurements[4])<0.0001: # Driving straight
             x[0] = x[0] + x[3]*dt * np.cos(x[2])
             x[1] = x[1] + x[3]*dt * np.sin(x[2])
             x[2] = x[2]
@@ -107,7 +125,7 @@ class Kalman():
         print('hx = ')
         print(hx)
 
-        if camera_avilable: # with 10Hz, every 5th step
+        if self.camera_avilable: # with 10Hz, every 5th step
             JH = np.diag([1.0, 1.0, 1.0, 1.0, 1.0])
         else: # every other step
             JH = np.diag([0.0, 0.0, 0.0, 1.0, 1.0])  
@@ -117,12 +135,14 @@ class Kalman():
         K = (P*JH.T) * np.linalg.inv(S)
 
         # Update the estimate via
-        Z = measurements.reshape(JH.shape[0],1)
+        Z = self.measurements.reshape(JH.shape[0],1)
         y = Z - (JH*hx)                         # I added JH .... not 100% sure
         x = x + (K*y)
 
         # Update the error covariance
         P = (I - (K*JH))*P
+
+
 
     def update_measurements(self, robot_state, thymio_data):
         robot_x = robot_state[0][0]

@@ -14,7 +14,7 @@ class Kalman():
         numstates = 5 # number of states (px, py, fi, v, w)
         self.camera_avilable = False
         self.dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
-        self.dtCamera=1.0/10.0 # Sample Rate of Camera is 10Hz
+        #self.dtCamera=1.0/10.0 # Sample Rate of Camera is 10Hz         # variable is not necessaire
         self.P = 0
         self.Q = 0
         self.R = 0
@@ -33,9 +33,9 @@ class Kalman():
         # Process Noise Covariance Matrix Q
         sCamera     = 0.5*8.8*dt**2  # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
         sCourse  = 0.1*dt # assume 0.1rad/s as maximum turn rate for the thymio ROBOT
-        sVelocity= 8.8*dt # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
-        sYaw     = 1.0*dt # assume 1.0rad/s2 as the maximum turn rate acceleration for the thymio ROBOT
-        self.Q = np.diag([sCamera**2, sCamera**2, sCourse**2, sVelocity**2, sYaw**2])
+        sSpeed= 8.8*dt # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
+        sYawrate     = 1.0*dt # assume 1.0rad/s2 as the maximum turn rate acceleration for the thymio ROBOT
+        self.Q = np.diag([sCamera**2, sCamera**2, sCourse**2, sSpeed**2, sYawrate**2])
         #print('Q = ')
         #print(self.Q, self.Q.shape)
 
@@ -56,7 +56,7 @@ class Kalman():
 
         # Initial State Vector
         # The states are (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])
-        self.x = np.matrix([[90, 80, 45/180.0*np.pi, 1.1, 0.1]]).T
+        self.x = np.matrix([[0.0, 0.0, 0/180.0*np.pi, 0.0, 0.0]]).T
         #print('x =')
         #print(self.x, self.x.shape)
 
@@ -122,7 +122,7 @@ class Kalman():
         # Measurement Update (Correction)
         # ===============================
         # Measurement Function
-        #hx = np.matrix([[float(x[0])],[float(x[1])],[float(x[2])],[float(x[3])],[float(x[4])]])   #Not sure why we would need it
+        hx = np.matrix([[float(x[0])],[float(x[1])],[float(x[2])],[float(x[3])],[float(x[4])]])   #Not sure why we would need it
 
         if self.camera_avilable: # with 10Hz, every 5th step
             JH = np.diag([1.0, 1.0, 1.0, 1.0, 1.0])
@@ -135,7 +135,7 @@ class Kalman():
 
         # Update the estimate via
         #Z = self.measurements.reshape(JH.shape[0],1)
-        y = self.measurements - (JH*x)                         # I added JH .... not 100% sure
+        y = self.measurements - (hx)                         # I added JH .... not 100% sure
         x = x + (K*y)
 
         # Update the error covariance
@@ -165,7 +165,7 @@ class Kalman():
 
         # Store the information at the right place
         self.camera_avilable = camera_data[2]
-        self.measurements = [px, py, phi, speed, yawrate]
+        self.measurements = np.matrix([px, py, phi, speed, yawrate]).T
     
     #def get_result(self):
     #    return self.result
@@ -173,26 +173,84 @@ class Kalman():
 
 # Create an object called kalman 
 kalman = Kalman()
-camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
-thymio_data = [1, 3]    # left speed, right speed
+camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
+thymio_data = [0,0]    # left speed, right speed
 kalman.update_measurements(camera_data, thymio_data)
 var = kalman.estimate()
 print(var)
+#print(kalman.P)
 
-camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
-thymio_data = [1, 3]    # left speed, right speed
+kalman = Kalman()
+camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
+thymio_data = [0,0]    # left speed, right speed
 kalman.update_measurements(camera_data, thymio_data)
 var = kalman.estimate()
 print(var)
+#print(kalman.P)
 
-camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
-thymio_data = [1, 3]    # left speed, right speed
+kalman = Kalman()
+camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
+thymio_data = [0,0]    # left speed, right speed
 kalman.update_measurements(camera_data, thymio_data)
 var = kalman.estimate()
 print(var)
+#print(kalman.P)
 
-camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
-thymio_data = [1, 3]    # left speed, right speed
+kalman = Kalman()
+camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
+thymio_data = [0,0]    # left speed, right speed
 kalman.update_measurements(camera_data, thymio_data)
 var = kalman.estimate()
 print(var)
+#print(kalman.P)
+
+kalman = Kalman()
+camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
+thymio_data = [0,0]    # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+#print(kalman.P)
+
+camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
+thymio_data = [500, 500]     # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+#print(kalman.P)
+
+camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
+thymio_data = [500, 500]     # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+#print(kalman.P)
+
+camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
+thymio_data = [500, 500]     # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+#print(kalman.P)
+
+camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
+thymio_data = [500, 500]     # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+#print(kalman.P)
+
+camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
+thymio_data = [500, 500]     # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+#print(kalman.P)
+
+camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
+thymio_data = [500, 500]     # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+#print(kalman.P)
+

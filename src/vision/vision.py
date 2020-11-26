@@ -164,8 +164,6 @@ def detect_obstacles(frame, scale=1):
         
     
     
-    plt.imshow(black, cmap="gray")
-    
     
     #find contours
     
@@ -262,7 +260,7 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
 
 
 
-class Watcher():
+class Observer():
     
     def __init__(self, cap):
         self.cap = cap
@@ -271,32 +269,50 @@ class Watcher():
         self.obstacles_dilated = []
         self.obstacles = []
         self.targets = []
+        self.frame = np.zeros((200, 200, 3), dtype=np.uint8)
+        self.error_log = []
+        self.start_time = time.time()
         
         
     def stabilize(self, cycles):
         #read a few frames for the camera to adjust
-        for i in range(cycles):
-            self.cap.read()
-            time.sleep(0.1)
+        try:
+            for i in range(cycles):
+                self.cap.read()
+                time.sleep(0.1)
+        except:
+            self.add_error("cam error")
+                    
+            
+    def capture(self):
+        try:
+            ret, self.frame = self.cap.read()
+        except:
+            self.add_error("cam error")
+        
+    def set_frame(self, frame):
+        self.frame = frame.copy()
             
     def find_scale(self):
-        ret, frame = self.cap.read()
-        self.scale = detect_scale(frame)
+        if(not self.robot_pos[2]):
+            self.add_error("robot not found, using scale=1")
+            self.scale = 1
+        else:   
+            self.scale = ROBOT_LEN/self.robot_pos[3]
         return self.scale
     
     def find_obstacles(self):
-        ret, frame = self.cap.read()
-        self.obstacles_dilated, self.obstacles, ret = detect_obstacles(frame, self.scale)
+        self.obstacles_dilated, self.obstacles, ret = detect_obstacles(self.frame, self.scale)
         return self.obstacles_dilated
     
     def find_targets(self):
-        ret, frame = self.cap.read()
-        self.targets, ret = detect_targets(frame, self.scale)
+        self.targets, ret = detect_targets(self.frame, self.scale)
         return self.targets
     
     def find_robot(self):
-        ret, frame = self.cap.read()
-        self.robot_pos, ret = detect_robot(frame, self.scale)
+        self.robot_pos, ret = detect_robot(self.frame, self.scale)
+        if(not self.robot_pos[2]):
+            self.add_error("robot not found")
         return self.robot_pos
     
     def get_robot_pos(self):
@@ -315,9 +331,14 @@ class Watcher():
         return self.scale
     
     def debug_output(self, trajectory):
-        ret, frame = self.cap.read()
-        frame = debug_output(frame, self.robot_pos, self.targets, self.obstacles, trajectory, self.scale)
+        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles, trajectory, self.scale)
         return frame
+    
+    def add_error(self, error):
+        self.error_log.append([time.time()-self.start_time, error])
+
+    def get_error_log(self):
+        return self.error_log
         
     
     

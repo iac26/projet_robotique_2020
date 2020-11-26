@@ -67,7 +67,7 @@ class Kalman():
         # Past again the copied value
         self.dt = dt
 
-    def estimate(self, measurements):
+    def estimate(self):
         
         # Copy variabel for better understanding of formulas
         dt = self.dt
@@ -147,15 +147,21 @@ class Kalman():
         # Return the state vector
         return self.x
 
-    def update_measurements(self, robot_state, thymio_data):
-        robot_x = robot_state[0][0]
-        robot_y = robot_state[0][1]
-        robot_phi = robot_state[1]
+    def update_measurements(self, camera_data, thymio_data):
+        px = camera_data[0][0]
+        py = camera_data[0][1]
+        phi = camera_data[1]
         speed = thymio_data[0]
         yawrate = thymio_data[1]
-        self.camera_avilable = robot_state[2]
-        self.measurements = [robot_x, robot_y, robot_phi, speed, yawrate]
+        self.camera_avilable = camera_data[2]
+        self.measurements = [px, py, phi, speed, yawrate]
 
     #def get_result(self):
     #    return self.result
+
+
+
+kalman = Kalman()
+kalman.__init__()
+kalman.estimate()
 

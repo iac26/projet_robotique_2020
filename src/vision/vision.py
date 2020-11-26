@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 
 def cleanup_contours(contours):
@@ -91,7 +92,7 @@ def detect_robot(frame, scale=1):
                        
     good_cnt = sorted(good_cnt, key = lambda x: x[3])
     
-    robot_pos = [np.array([0, 0]), 0, False, 0];
+    robot_pos = [np.array([0, 0]), 0, False, 0]
     
     if(len(good_cnt) > 0):
         robot_visible = True
@@ -263,6 +264,38 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
 
 
 
+
+class Watcher():
+    
+    def __init__(self, cap):
+        self.cap = cap
+        self.scale = 1.0;
+        self.robot_pos = [np.array([0, 0]), 0, False, 0]
+        self.obstacles_dilated = []
+        self.obstacles = []
+        self.targets = []
+        
+        
+    def stabilize(self, cycles):
+        #read a few frames for the camera to adjust
+        for i in range(cycles):
+            self.cap.read()
+            time.sleep(0.1)
+            
+    def find_scale(self):
+        ret, frame = self.cap.read()
+        self.scale = detect_scale(frame)
+    
+    def find_obstacles(self):
+        ret, frame = self.cap.read()
+        self.obstacles_dilated, self.obstacles, ret = detect_obstacles(frame, self.scale)
+    
+    def find_targets(self):
+        ret, frame = self.cap.read()
+        self.targets, ret = detect_targets(frame, self.scale)
+        
+        
+    
     
 
 

@@ -120,11 +120,7 @@ class Kalman():
         # Measurement Update (Correction)
         # ===============================
         # Measurement Function
-        hx = np.matrix([[float(x[0])],[float(x[1])],[float(x[2])],[float(x[3])],[float(x[4])]])
-        print('x =')
-        print(x)
-        print('hx = ')
-        print(hx)
+        #hx = np.matrix([[float(x[0])],[float(x[1])],[float(x[2])],[float(x[3])],[float(x[4])]])   #Not sure why we would need it
 
         if self.camera_avilable: # with 10Hz, every 5th step
             JH = np.diag([1.0, 1.0, 1.0, 1.0, 1.0])
@@ -137,7 +133,7 @@ class Kalman():
 
         # Update the estimate via
         #Z = self.measurements.reshape(JH.shape[0],1)
-        y = self.measurements - (JH*hx)                         # I added JH .... not 100% sure
+        y = self.measurements - (JH*x)                         # I added JH .... not 100% sure
         x = x + (K*y)
 
         # Update the error covariance

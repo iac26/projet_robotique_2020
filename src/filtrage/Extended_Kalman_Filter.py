@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Symbol, symbols, Matrix, sin, cos
 
+robot_diameter = 95 #[mm]
 
 
 
@@ -84,6 +85,7 @@ class Kalman():
         # ========================
         # Project the state ahead
         # see "Dynamic Matrix"
+                                                    
         if np.abs(self.measurements[4])<0.0001: # Driving straight
             x[0] = x[0] + x[3]*dt * np.cos(x[2])
             x[1] = x[1] + x[3]*dt * np.sin(x[2])
@@ -148,25 +150,49 @@ class Kalman():
         output = [np.array([x.item(0), x.item(1)]), x.item(2), self.camera_avilable,1]   # 1 in the end is just to not crash YUAN
         return output
 
-
-
-
     def update_measurements(self, camera_data, thymio_data):
+
+        # Extract the information
         px = camera_data[0][0]
         py = camera_data[0][1]
         phi = camera_data[1]
-        speed = thymio_data[0]
-        yawrate = thymio_data[1]
+        left_speed = thymio_data[0]
+        right_speed = thymio_data[1]
+
+        # Converting the left and right speed, to an average speed and yawrate
+        speed = (left_speed + right_speed)/2
+        yawrate = (right_speed - left_speed)/(robot_diameter) 
+
+        # Store the information at the right place
         self.camera_avilable = camera_data[2]
         self.measurements = [px, py, phi, speed, yawrate]
-
-
+    
     #def get_result(self):
     #    return self.result
 
 
-
+# Create an object called kalman 
 kalman = Kalman()
-
+camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
+thymio_data = [1, 3]    # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
 var = kalman.estimate()
+print(var)
 
+camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
+thymio_data = [1, 3]    # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+
+camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
+thymio_data = [1, 3]    # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)
+
+camera_data = output = [np.array([60, 50]), 40/180.0*np.pi, True,1]
+thymio_data = [1, 3]    # left speed, right speed
+kalman.update_measurements(camera_data, thymio_data)
+var = kalman.estimate()
+print(var)

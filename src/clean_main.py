@@ -16,8 +16,10 @@ sys.path.append("filtrage")
 sys.path.append("globalNavigation")
 sys.path.append("localNavigation")
 
+
 import vision
 import globalNavigation
+import Extended_Kalman_Filter
 import start_thymio
 
 

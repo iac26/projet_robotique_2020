@@ -255,10 +255,7 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
         else:
             frame = cv2.line(frame, (int(lpt[0]), int(lpt[1])), (int(pt[0]), int(pt[1])), color=(255, 0, 255), thickness=3) 
         lpt = pt
-    
-    
-    
-    
+        
     return frame
 
 
@@ -285,16 +282,44 @@ class Watcher():
     def find_scale(self):
         ret, frame = self.cap.read()
         self.scale = detect_scale(frame)
+        return self.scale
     
     def find_obstacles(self):
         ret, frame = self.cap.read()
         self.obstacles_dilated, self.obstacles, ret = detect_obstacles(frame, self.scale)
+        return self.obstacles_dilated
     
     def find_targets(self):
         ret, frame = self.cap.read()
         self.targets, ret = detect_targets(frame, self.scale)
+        return self.targets
+    
+    def find_robot(self):
+        ret, frame = self.cap.read()
+        self.robot_pos, ret = detect_robot(frame, self.scale)
+        return self.robot_pos
+    
+    def get_robot_pos(self):
+        return self.robot_pos
+
+    def get_obstacles(self):
+        return self.obstacles_dilated
+    
+    def get_obstacles_original(self):
+        return self.obstacles
+    
+    def get_targets(self):
+        return self.targets
+    
+    def get_scale(self):
+        return self.scale
+    
+    def debug_output(self, trajectory):
+        ret, frame = self.cap.read()
+        frame = debug_output(frame, self.robot_pos, self.targets, self.obstacles, trajectory, self.scale)
+        return frame
         
-        
+    
     
     
 

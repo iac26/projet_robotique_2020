@@ -3,6 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+RED_LOW  = [150, 100, 100]
+RED_HIGH = [179, 255, 255]
+
+GREEN_LOW  = [41, 32, 32]
+GREEN_HIGH = [77, 140, 140]
+
+BLUE_LOW  = [87, 129, 80]
+BLUE_HIGH = [131, 255, 255]
+
 
 def cleanup_contours(contours):
     #clean contours
@@ -42,8 +51,8 @@ def find_color(frame, hsv_low, hsv_high):
 
 #returns an array [numpy array pos, angle, visible T/F]
 def detect_robot(frame, scale=1):
-    blue_low = np.array([50, 110, 60], np.uint8)
-    blue_high = np.array([150, 255, 255], np.uint8)
+    blue_low = np.array(BLUE_LOW, np.uint8)
+    blue_high = np.array(BLUE_HIGH, np.uint8)
     frame = frame.copy()
     
     clean_contours = find_color(frame, blue_low, blue_high)
@@ -127,8 +136,8 @@ DIL_COEFF = 80
 
 def detect_obstacles(frame, scale=1):
     frame = frame.copy()
-    red_low = np.array([140, 100, 100], np.uint8)
-    red_high = np.array([180, 255, 255], np.uint8)
+    red_low = np.array(RED_LOW, np.uint8)
+    red_high = np.array(RED_HIGH, np.uint8)
     
     clean_contours = find_color(frame, red_low, red_high)
             
@@ -185,8 +194,8 @@ def detect_obstacles(frame, scale=1):
 
 def detect_targets(frame, scale=1):
     frame = frame.copy()
-    green_low = np.array([40, 50, 0], np.uint8)
-    green_high = np.array([85, 255, 150], np.uint8)
+    green_low = np.array(GREEN_LOW, np.uint8)
+    green_high = np.array(GREEN_HIGH, np.uint8)
     
     clean_contours = find_color(frame, green_low, green_high)
     

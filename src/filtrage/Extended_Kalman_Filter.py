@@ -146,6 +146,9 @@ class Kalman():
         self.I = I 
         self.x = x 
 
+        # If there is no error, output True
+        self.camera_avilable = True
+
         # Return the state vector
         output = [np.array([x.item(0), x.item(1)]), x.item(2), self.camera_avilable,1]   # 1 in the end is just to not crash YUAN
         return output
@@ -167,90 +170,3 @@ class Kalman():
         self.camera_avilable = camera_data[2]
         self.measurements = np.matrix([px, py, phi, speed, yawrate]).T
     
-    #def get_result(self):
-    #    return self.result
-
-
-# Create an object called kalman 
-kalman = Kalman()
-camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
-thymio_data = [0,0]    # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-kalman = Kalman()
-camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
-thymio_data = [0,0]    # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-kalman = Kalman()
-camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
-thymio_data = [0,0]    # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-kalman = Kalman()
-camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
-thymio_data = [0,0]    # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-kalman = Kalman()
-camera_data = output = [np.array([60, 50]), 90/180.0*np.pi, True,1]
-thymio_data = [0,0]    # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
-thymio_data = [500, 500]     # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
-thymio_data = [500, 500]     # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
-thymio_data = [500, 500]     # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
-thymio_data = [500, 500]     # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
-thymio_data = [500, 500]     # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-
-camera_data = output = [np.array([60, 50]), 0/180.0*np.pi, False,1]
-thymio_data = [500, 500]     # left speed, right speed
-kalman.update_measurements(camera_data, thymio_data)
-var = kalman.estimate()
-print(var)
-#print(kalman.P)
-

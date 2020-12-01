@@ -26,9 +26,9 @@ actual_position=[0,0]
 actual_angle=0
 actual_goal=[0,0]
 no_detection=False
-error_sum=0
+error_sum = 0
 error = 0
-error_prev=0
+error_prev = 0
 speed_avoidance_l_prev=0
 speed_avoidance_r_prev=0
 
@@ -66,7 +66,7 @@ class RepeatedTimer(object):
 def connexion_thymio():
     global th
     th = Thymio.serial(port="COM5", refreshing_rate=0.1)
-    time.sleep(3) # To make sure the Thymio has had time to connect
+    time.sleep(10) # To make sure the Thymio has had time to connect
     print("Thymio is connected :)")
 
 
@@ -224,6 +224,10 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
         speed_l = base_speed + vitesse_PID + speed_avoidance_l
         speed_r = base_speed - vitesse_PID + speed_avoidance_r
         
+
+        print("speed left: ",speed_l)
+        print("speed right: ",speed_r)
+
         move(int(speed_l),int(speed_r))
 
         """

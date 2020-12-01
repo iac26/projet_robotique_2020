@@ -6,7 +6,7 @@ import time
 RED_LOW  = [150, 100, 100]
 RED_HIGH = [179, 255, 255]
 
-GREEN_LOW  = [41, 32, 32]
+GREEN_LOW  = [41, 32, 0]
 GREEN_HIGH = [77, 140, 140]
 
 BLUE_LOW  = [87, 129, 80]
@@ -15,7 +15,7 @@ BLUE_HIGH = [131, 255, 255]
 
 def cleanup_contours(contours):
     #clean contours
-    AREA_THRESH = 500
+    AREA_THRESH = 100
     MERGE_THRESH = 0.04
     
     clean_contours = []
@@ -222,7 +222,7 @@ def detect_targets(frame, scale=1):
     return scaled_centroids, frame
 
 
-ROBOT_LEN = 57.5
+ROBOT_LEN = 100
 
 def detect_scale(frame):
     robot_pos, ret = detect_robot(frame)

@@ -43,7 +43,7 @@ plt.imshow(frame)
 scale = vision.detect_scale(frame)
 
 dilated_obstacles, obstacles, ret = vision.detect_obstacles(frame, scale)
-print(dilated_obstacles)
+#print(dilated_obstacles)
 
 targets, ret = vision.detect_targets(frame, scale)
 #print(targets)
@@ -56,7 +56,7 @@ while True:
         break
     ret, frame = cap.read()
 
-print("robot pos: ", robot_pos)
+#print("robot pos: ", robot_pos)
 
 
 # ------------------------------------------------- GLOBAL NAVIGATION --------------------------------------------
@@ -69,7 +69,7 @@ visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(
 targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
 
 trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
-print("traject: ",trajectory)
+#print("traject: ",trajectory)
 
 
 final = vision.debug_output(frame, robot_pos, targets, dilated_obstacles, trajectory, scale)
@@ -106,7 +106,7 @@ rt = start_thymio.RepeatedTimer(0.05, start_thymio.measure_sensor)
 # ----------------------------------------------------------------------------------------------------------------
 #cap = cv2.VideoCapture(0)
 while True:
-    print("--------------------------------------------")
+   # print("--------------------------------------------")
     #condition de fin
     time.sleep(0.05)
     #value_proximity,value_acceleration,value_speed=start_thymio.get_sensor_value()
@@ -126,7 +126,7 @@ while True:
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
         count_trajectory+=1
         goal_actual=trajectory[count_trajectory]
-        print("goal has just changed, actual goal is :",goal_actual) 
+       # print("goal has just changed, actual goal is :",goal_actual) 
         start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
         
 

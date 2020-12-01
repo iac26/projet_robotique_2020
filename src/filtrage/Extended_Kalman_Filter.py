@@ -8,7 +8,7 @@ robot_diameter = 95 #[mm]
 
 class Kalman():
 
-    def __init__(self):  
+    def __init__(self, robot_pos):  
        
         # Initailise Variables
         numstates = 5 # number of states (px, py, fi, v, w)
@@ -62,7 +62,7 @@ class Kalman():
 
 
         # Initial measurement vector  (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])  Will be mesured
-        self.measurements = np.matrix([[120, 130, 90/180.0*np.pi, 1, 0.2]]).T
+        self.measurements = np.matrix([[int(robot_pos[0][0]), int(robot_pos[0][1]), float(robot_pos[1]), 1, 0.2]]).T
         # Lenth of the measurement
         #print('measurements = ')
         #print(self.measurements)
@@ -70,10 +70,10 @@ class Kalman():
         # Past again the copied value
         self.dt = dt
 
-    def estimate(self):
+    def estimate(self, dt):
         
         # Copy variabel for better understanding of formulas
-        dt = self.dt
+        #dt = self.dt
         P = self.P  
         Q = self.Q 
         R = self.R 

@@ -74,7 +74,7 @@ plt.figure()
 plt.gca().invert_yaxis()
 globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
 
-
+kalman = Extended_Kalman_Filter.Kalman(robot_pos)
 
 value_proximity=[]
 value_acceleration=[]
@@ -85,6 +85,11 @@ count_trajectory=1
 goal_actual=trajectory[count_trajectory]
 nb_goal=len(trajectory)
 robot_pos = []
+
+
+
+
+
 
 last_time = time.time()
 
@@ -98,9 +103,11 @@ while 1:
     
     robot_pos = observer.find_robot()
     
-    #TIMON
+    kalman.update_measurements(robot_pos, value_speed)
+    estimated_robot_pos = kalman.estimate(dt)
     
-    actual_position,actual_angle = start_thymio.get_position(robot_pos)
+    
+    actual_position,actual_angle = start_thymio.get_position(estimated_robot_pos)
     
     
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
@@ -112,6 +119,7 @@ while 1:
 
     elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
         start_thymio.mission_accomplished()
+        break
 
     else:
         start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    

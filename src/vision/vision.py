@@ -233,7 +233,7 @@ def detect_scale(frame):
 
 
 
-def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
+def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_robot_pos, scale):
     frame = frame.copy()
     for pt in targets:
         pt = np.floor(np.divide(pt, scale)).astype(int)
@@ -244,13 +244,23 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
             pt = np.floor(np.divide(pt, scale)).astype(int)
             frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
     
-    pt = np.floor(np.divide(robot_pos[0], scale)).astype(int)
-    frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(255, 0, 0), thickness=-1)
-    pt2 = pt.copy()
-    LEN = 20
-    pt2[0] = int(pt[0] + scale*LEN*np.cos(robot_pos[1]))
-    pt2[1] = int(pt[1] + scale*LEN*np.sin(robot_pos[1]))
-    frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 0), thickness=3)
+    if(robot_pos[2]):
+        pt = np.floor(np.divide(robot_pos[0], scale)).astype(int)
+        frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(255, 0, 0), thickness=-1)
+        pt2 = pt.copy()
+        LEN = 20
+        pt2[0] = int(pt[0] + scale*LEN*np.cos(robot_pos[1]))
+        pt2[1] = int(pt[1] + scale*LEN*np.sin(robot_pos[1]))
+        frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 0), thickness=3)
+    
+    if(estimated_robot_pos[2]):
+        pt = np.floor(np.divide(estimated_robot_pos[0], scale)).astype(int)
+        frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(255, 0, 255), thickness=-1)
+        pt2 = pt.copy()
+        LEN = 20
+        pt2[0] = int(pt[0] + scale*LEN*np.cos(estimated_robot_pos[1]))
+        pt2[1] = int(pt[1] + scale*LEN*np.sin(estimated_robot_pos[1]))
+        frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 255), thickness=3)
     
     fst = 0
     
@@ -339,8 +349,8 @@ class Observer():
     def get_scale(self):
         return self.scale
     
-    def debug_output(self, trajectory):
-        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles, trajectory, self.scale)
+    def debug_output(self, trajectory, estimated_robot_pos=[np.array([0, 0]), 0, False, 0]):
+        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles, trajectory, estimated_robot_pos, self.scale)
         return frame
     
     def add_error(self, error):

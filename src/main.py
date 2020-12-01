@@ -72,8 +72,11 @@ plt.gca().invert_yaxis()
 globalNavigation.printGlobalNavigation(obstacles, dilated_obstacles, interestPoints = targets, trajectory = trajectory)
 
 # ------------------------------------------------- CONNEXION --------------------------------------------------
+
 start_thymio.connexion_thymio()
+
 # ------------------------------------------------- VARIABLE INIT --------------------------------------------------
+
 value_proximity=[]
 value_acceleration=[]
 value_speed=[]
@@ -132,9 +135,15 @@ while True:
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+    """
                        
 
 
 cap.release()
+<<<<<<< Updated upstream
 cv2.destroyAllWindows()
 """
+=======
+#cv2.destroyAllWindows()
+>>>>>>> Stashed changes

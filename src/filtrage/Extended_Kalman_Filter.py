@@ -146,6 +146,9 @@ class Kalman():
         self.I = I 
         self.x = x 
 
+        # If there is no error, output True
+        self.camera_avilable = True
+
         # Return the state vector
         output = [np.array([x.item(0), x.item(1)]), x.item(2), True ,1]   # 1 in the end is just to not crash YUAN
         return output
@@ -166,7 +169,9 @@ class Kalman():
         # Store the information at the right place
         self.camera_avilable = camera_data[2]
         self.measurements = np.matrix([px, py, phi, speed, yawrate]).T
+
     
     #def get_result(self):
     #    return self.result
+
 

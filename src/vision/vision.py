@@ -233,7 +233,7 @@ def detect_scale(frame):
 
 
 
-def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_robot_pos, scale):
+def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_robot_pos, text, scale):
     frame = frame.copy()
     for pt in targets:
         pt = np.floor(np.divide(pt, scale)).astype(int)
@@ -261,6 +261,9 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_rob
         pt2[0] = int(pt[0] + scale*LEN*np.cos(estimated_robot_pos[1]))
         pt2[1] = int(pt[1] + scale*LEN*np.sin(estimated_robot_pos[1]))
         frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 255), thickness=3)
+        
+    font = cv2.FONT_HERSHEY_SIMPLEX 
+    cv2.putText(frame, text, (10, 50), font, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
     
     fst = 0
     
@@ -291,6 +294,7 @@ class Observer():
         self.frame = np.zeros((200, 200, 3), dtype=np.uint8)
         self.error_log = []
         self.start_time = time.time()
+        self.text = ""
         
         
     def stabilize(self, cycles):
@@ -349,8 +353,11 @@ class Observer():
     def get_scale(self):
         return self.scale
     
+    def set_text(self, text):
+        self.text = text;
+    
     def debug_output(self, trajectory, estimated_robot_pos=[np.array([0, 0]), 0, False, 0]):
-        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles, trajectory, estimated_robot_pos, self.scale)
+        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles, trajectory, estimated_robot_pos, self.text, self.scale)
         return frame
     
     def add_error(self, error):

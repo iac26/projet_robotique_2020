@@ -148,7 +148,6 @@ except:
     pass
 
 cv2.destroyAllWindows()
-
     
     
     

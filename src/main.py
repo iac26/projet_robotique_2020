@@ -14,6 +14,12 @@ import globalNavigation
 import start_thymio
 
 
+
+
+
+
+
+
 # -------------------------------------------------- VISION INIT --------------------------------------------------
 
 #video capture object
@@ -141,3 +147,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+

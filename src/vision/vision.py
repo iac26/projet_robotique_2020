@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 
 def cleanup_contours(contours):
@@ -91,7 +92,7 @@ def detect_robot(frame, scale=1):
                        
     good_cnt = sorted(good_cnt, key = lambda x: x[3])
     
-    robot_pos = [np.array([0, 0]), 0, False, 0];
+    robot_pos = [np.array([0, 0]), 0, False, 0]
     
     if(len(good_cnt) > 0):
         robot_visible = True
@@ -162,8 +163,6 @@ def detect_obstacles(frame, scale=1):
         cv2.drawContours(black, dil_contour, i, (255), -1)
         
     
-    
-    plt.imshow(black, cmap="gray")
     
     
     #find contours
@@ -254,15 +253,95 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, scale):
         else:
             frame = cv2.line(frame, (int(lpt[0]), int(lpt[1])), (int(pt[0]), int(pt[1])), color=(255, 0, 255), thickness=3) 
         lpt = pt
-    
-    
-    
-    
+        
     return frame
 
 
 
 
+
+class Observer():
+    
+    def __init__(self, cap):
+        self.cap = cap
+        self.scale = 1.0;
+        self.robot_pos = [np.array([0, 0]), 0, False, 0]
+        self.obstacles_dilated = []
+        self.obstacles = []
+        self.targets = []
+        self.frame = np.zeros((200, 200, 3), dtype=np.uint8)
+        self.error_log = []
+        self.start_time = time.time()
+        
+        
+    def stabilize(self, cycles):
+        #read a few frames for the camera to adjust
+        try:
+            for i in range(cycles):
+                self.cap.read()
+                time.sleep(0.1)
+        except:
+            self.add_error("cam error")
+                    
+            
+    def capture(self):
+        try:
+            ret, self.frame = self.cap.read()
+        except:
+            self.add_error("cam error")
+        
+    def set_frame(self, frame):
+        self.frame = frame.copy()
+            
+    def find_scale(self):
+        if(not self.robot_pos[2]):
+            self.add_error("robot not found, using scale=1")
+            self.scale = 1
+        else:   
+            self.scale = ROBOT_LEN/self.robot_pos[3]
+        return self.scale
+    
+    def find_obstacles(self):
+        self.obstacles_dilated, self.obstacles, ret = detect_obstacles(self.frame, self.scale)
+        return self.obstacles_dilated
+    
+    def find_targets(self):
+        self.targets, ret = detect_targets(self.frame, self.scale)
+        return self.targets
+    
+    def find_robot(self):
+        self.robot_pos, ret = detect_robot(self.frame, self.scale)
+        if(not self.robot_pos[2]):
+            self.add_error("robot not found")
+        return self.robot_pos
+    
+    def get_robot_pos(self):
+        return self.robot_pos
+
+    def get_obstacles(self):
+        return self.obstacles_dilated
+    
+    def get_obstacles_original(self):
+        return self.obstacles
+    
+    def get_targets(self):
+        return self.targets
+    
+    def get_scale(self):
+        return self.scale
+    
+    def debug_output(self, trajectory):
+        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles, trajectory, self.scale)
+        return frame
+    
+    def add_error(self, error):
+        self.error_log.append([time.time()-self.start_time, error])
+
+    def get_error_log(self):
+        return self.error_log
+        
+    
+    
     
 
 

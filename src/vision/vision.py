@@ -359,7 +359,7 @@ class Observer():
         self.text = text;
     
     def debug_output(self, trajectory, estimated_robot_pos=[np.array([0, 0]), 0, False, 0]):
-        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles, trajectory, estimated_robot_pos, self.text, self.scale)
+        frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles_dilated, trajectory, estimated_robot_pos, self.text, self.scale)
         return frame
     
     def add_error(self, error):

@@ -132,7 +132,7 @@ def detect_robot(frame, scale=1):
     return robot_pos, frame
 
 
-DIL_COEFF = 80
+DIL_COEFF = 40
 
 def detect_obstacles(frame, scale=1):
     frame = frame.copy()

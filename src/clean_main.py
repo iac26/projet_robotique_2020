@@ -46,6 +46,10 @@ obstacles = observer.find_obstacles()
 targets = observer.find_targets()
 robot_pos = observer.find_robot()
 
+####
+plt.figure()
+plt.gca().invert_yaxis()
+globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets)
 
 
 visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
@@ -74,7 +78,11 @@ plt.figure()
 plt.gca().invert_yaxis()
 globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
 
+
 kalman = Extended_Kalman_Filter.Kalman(robot_pos)
+
+start_thymio.connexion_thymio()
+
 
 value_proximity=[]
 value_acceleration=[]

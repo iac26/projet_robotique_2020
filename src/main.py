@@ -24,43 +24,32 @@ for i in range(20):
     ret, frame = cap.read()
     time.sleep(0.1)
 
-#get one frame
-ret, frame = cap.read()
-
-frame = cv2.imread("vision/images/colors.png")
-
-
-plt.imshow(frame)
-
-
 
 scale = vision.detect_scale(frame)
 
 dilated_obstacles, obstacles, ret = vision.detect_obstacles(frame, scale)
-print(dilated_obstacles)
 
 targets, ret = vision.detect_targets(frame, scale)
-#print(targets)
 
-while True:
-
-    robot_pos, ret = vision.detect_robot(frame, scale)
-    
-    if robot_pos[2]:
-        break
-    ret, frame = cap.read()
-
-print("robot pos: ", robot_pos)
-
+robot_pos, ret = vision.detect_robot(frame, scale)
 
 # ------------------------------------------------- GLOBAL NAVIGATION --------------------------------------------
-
-#dilatedObstacles = globalNavigation.dilateObstacles(obstacles, scalingFactor = 1.8) ########## scaling
-#print(dilatedObstacles)
 
 visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(dilated_obstacles)
 
 targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
+
+pointsInObstacle = globalNavigation.InterestPointInObstacle(targets, visibilityGraph)
+    
+while pointsInObstacle:
+    print("One of the interest point is in a dilated obstacle, please replace them !")
+    ret, frame = cap.read()
+    targets.clear()
+    targets, ret = vision.detect_targets(frame, scale)
+    robot_pos, ret = vision.detect_robot(frame, scale)
+    targets.insert(0, [robot_pos[0][0], robot_pos[0][1]])
+    pointsInObstacle = InterestPointInObstacle(targets, visibilityGraph)
+    time.sleep(0.5)
 
 trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
 print("traject: ",trajectory)
@@ -103,6 +92,7 @@ while True:
 
     #condition de fin
     time.sleep(0.1)
+    """
     value_proximity,value_acceleration,value_speed=start_thymio.get_sensor_value()
     ret, frame = cap.read()
     actual_position,actual_angle=start_thymio.get_position(frame) # upload data in global variables
@@ -137,3 +127,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+"""

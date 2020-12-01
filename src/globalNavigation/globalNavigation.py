@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 X = 0
 Y = 1
 
-# CARE SI OBSTACLES TROP PROCHES LA DILATATION VA FAIRE RENTRER DEUX OBSTACLES ENTRE EUX !!
+# CARE SI OBSTACLES TROP PROCHES LA DILATATION VA FAIRE RENTRER DEUX OBSTACLES ENTRE EUX !! OK
 # RETURN NON SI INTEREST POINT DANS OBSTACLE DILATE
-# DILATATION PAS HOMOGENE
+# DILATATION PAS HOMOGENE -> ok iaco
 
 def computeCentroid(contours):
     """Given the contours of a set of polygons, compute their respective centroids
@@ -85,44 +85,7 @@ def dilateObstacles(contours, scalingFactor):
             contoursMapped[i][j][X] = int(contoursMapped[i][j][X] + centroids[i][X])
             contoursMapped[i][j][Y] = int(contoursMapped[i][j][Y] + centroids[i][Y])
     
-    """
-    # For each obstacle, map the original contour points to new coordinates where (0, 0) is the centroid
-    for obstacle, i in zip(contours, range(len(contours))):
-        for extremity, j in zip(obstacle, range(len(obstacle))):
-            contours[i][j][0] = [extremity[0][X] - centroids[i][X], extremity[0][Y] - centroids[i][Y]]
-
-
-    # Scale position
-    for obstacle, i in zip(contours, range(len(contours))):
-        for j in range(len(obstacle)):
-            contours[i][j][0][X] *= scalingFactor
-            contours[i][j][0][Y] *= scalingFactor
-
-
-    # Map it back to previous coordinates by adding back position of centroids
-    for obstacle, i in zip(contours, range(len(contours))):
-        for j in range(len(obstacle)):
-            contours[i][j][0][X] = int(contours[i][j][0][X] + centroids[i][X])
-            contours[i][j][0][Y] = int(contours[i][j][0][Y] + centroids[i][Y])
-
-    # If some dilated obstacles are overlapping, then merge them
-    mergedObstacles = []
-
-    for contour in contours:
-        hull = cv2.convexHull(contour) ############################## concavhull
-        epsilon = 0.01*cv2.arcLength(hull, True)
-        approx = cv2.approxPolyDP(hull, epsilon, True)
-        mergedObstacles.append(approx)
-
-
-    # FAIT UNE BONNE SORTIE
-    dilatedObstacles = [[] for _ in range(len(mergedObstacles))]
-
-    for obstacle, i in zip(mergedObstacles, range(len(mergedObstacles))):
-        for extremity in obstacle:
-            dilatedObstacles[i].append([extremity[0][X], extremity[0][Y]])
-    """
-    return contoursMapped #########################################""""
+    return contoursMapped 
 
 
 def computeVisibilityGraph(contoursMapped):
@@ -164,6 +127,15 @@ def computeVisibilityGraph(contoursMapped):
             visible.clear()
 
     return g, possibleDisplacement
+
+
+def InterestPointInObstacle(interestPoints, graph):
+
+    for point in interestPoints:
+        if graph.point_in_polygon(vg.Point(point[X], point[Y])) != -1:
+            return True
+
+    return False
 
 
 def computeTrajectory(graph, interestPoints): 
@@ -257,30 +229,32 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
     yOriginal = []
     xDilated = []
     yDilated = []
-    
-    
-    print("cmapped:", contoursMapped)
 
-    for obstacleOriginal, obstacleDilated in zip(contours, contoursMapped):
-        for extremityOriginal, extremityDilated in zip(obstacleOriginal, obstacleDilated):
+    for obstacleOriginal in contours:
+        for extremityOriginal in obstacleOriginal:
             xOriginal.append(extremityOriginal[X])
-            xDilated.append(extremityDilated[X])
             yOriginal.append(extremityOriginal[Y])
-            yDilated.append(extremityDilated[Y])
 
         xOriginal.append(obstacleOriginal[0][X])
-        xDilated.append(obstacleDilated[0][X])
         yOriginal.append(obstacleOriginal[0][Y])
-        yDilated.append(obstacleDilated[0][Y])
 
         plt.plot(xOriginal, yOriginal, 'b')
-        print("xdil:", xDilated)
-        print("ydil:", yDilated)
-        plt.plot(xDilated, yDilated, 'm')
 
         xOriginal.clear()
-        xDilated.clear()
         yOriginal.clear()
+
+    
+    for obstacleDilated in contoursMapped:
+        for extremityDilated in obstacleDilated:
+            xDilated.append(extremityDilated[X])
+            yDilated.append(extremityDilated[Y])
+
+        xDilated.append(obstacleDilated[0][X])
+        yDilated.append(obstacleDilated[0][Y])
+
+        plt.plot(xDilated, yDilated, 'm')
+
+        xDilated.clear()
         yDilated.clear()
 
 

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from sympy import Symbol, symbols, Matrix, sin, cos
 
 robot_diameter = 95 #[mm]
-
+speed_conversion_factor = 0.28   # [thymio/s] --> [mm/s]
 
 
 class Kalman():
@@ -13,7 +13,7 @@ class Kalman():
         # Initailise Variables
         numstates = 5 # number of states (px, py, fi, v, w)
         self.camera_avilable = False
-        self.dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
+        dt = 1.0/10.0 # Sample Rate of the Measurements is 50Hz
         #self.dtCamera=1.0/10.0 # Sample Rate of Camera is 10Hz         # variable is not necessaire
         self.P = 0
         self.Q = 0
@@ -21,9 +21,7 @@ class Kalman():
         self.I = 0
         self.x = 0
         self.measurements = 0
-    
-        #Copy for easier formel representations
-        dt = self.dt
+
 
         # Initial Uncertainty P0
         self.P = np.diag([1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
@@ -31,20 +29,20 @@ class Kalman():
         #print(self.P, self.P.shape)
 
         # Process Noise Covariance Matrix Q
-        sCamera     = 0.5*8.8*dt**2  # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
-        sCourse  = 0.1*dt # assume 0.1rad/s as maximum turn rate for the thymio ROBOT
-        sSpeed= 8.8*dt # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
-        sYawrate     = 1.0*dt # assume 1.0rad/s2 as the maximum turn rate acceleration for the thymio ROBOT
-        self.Q = np.diag([sCamera**2, sCamera**2, sCourse**2, sSpeed**2, sYawrate**2])
+        sCamera = 5  # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
+        sCourse  = 0.087222222 # assume 0.1rad/s as maximum turn rate for the thymio ROBOT
+        sSpeed= 6.15 # assume 8.8m/s2 as maximum acceleration, forcing the thymio ROBOT
+        sYawrate = 0.1  # assume 1.0rad/s2 as the maximum turn rate acceleration for the thymio ROBOT
+        self.Q = np.diag([sCamera, sCamera, sCourse, sSpeed, sYawrate])
         #print('Q = ')
         #print(self.Q, self.Q.shape)
 
         # Measurement Noise Covariance R
-        varCamera = 6.0 # Standard Deviation of Camera Measurement
+        varCamera = 5 # Standard Deviation of Camera Measurement
         varrot = 0.1 # Standard Deviation of rotation Measurement
-        varspeed = 1.0 # Standard Deviation of the speed measurement
+        varspeed = 6.15 # Standard Deviation of the speed measurement
         varyaw = 0.1 # Standard Deviation of the yawrate measurement
-        self.R = np.diag([varCamera**2, varCamera**2, varrot**2, varspeed**2, varyaw**2])
+        self.R = np.diag([varCamera, varCamera, varrot, varspeed, varyaw])
         #print('R =')
         #print(self.R, self.R.shape)
 
@@ -56,19 +54,16 @@ class Kalman():
 
         # Initial State Vector
         # The states are (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])
-        self.x = np.matrix([[0.0, 0.0, 0/180.0*np.pi, 0.0, 0.0]]).T
+        self.x = np.matrix([[int(robot_pos[0][0]), int(robot_pos[0][1]), float(robot_pos[1]), 0.0, 0.0]]).T
         #print('x =')
         #print(self.x, self.x.shape)
 
 
         # Initial measurement vector  (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])  Will be mesured
-        self.measurements = np.matrix([[int(robot_pos[0][0]), int(robot_pos[0][1]), float(robot_pos[1]), 1, 0.2]]).T
+        self.measurements = np.matrix([[int(robot_pos[0][0]), int(robot_pos[0][1]), float(robot_pos[1]), 0.0, 0.0]]).T
         # Lenth of the measurement
         #print('measurements = ')
         #print(self.measurements)
-
-        # Past again the copied value
-        self.dt = dt
 
     def estimate(self, dt):
         
@@ -135,7 +130,7 @@ class Kalman():
 
         # Update the estimate via
         #Z = self.measurements.reshape(JH.shape[0],1)
-        y = self.measurements - (hx)                         # I added JH .... not 100% sure
+        y = self.measurements - (JH*hx)                         # I added JH .... not 100% sure
         x = x + (K*y)
 
         # Update the error covariance
@@ -150,7 +145,7 @@ class Kalman():
         self.camera_avilable = True
 
         # Return the state vector
-        output = [np.array([x.item(0), x.item(1)]), x.item(2), True ,1]   # 1 in the end is just to not crash YUAN
+        output = [np.array([x.item(0), x.item(1)]), x.item(2), self.camera_avilable ,1]   # 1 in the end is just to not crash YUAN
         return output
 
     def update_measurements(self, camera_data, thymio_data):
@@ -159,8 +154,8 @@ class Kalman():
         px = camera_data[0][0]
         py = camera_data[0][1]
         phi = camera_data[1]
-        left_speed = thymio_data[0]
-        right_speed = thymio_data[1]
+        left_speed = 0.28*thymio_data[0]
+        right_speed = 0.28*thymio_data[1]
 
         # Converting the left and right speed, to an average speed and yawrate
         speed = (left_speed + right_speed)/2
@@ -171,7 +166,5 @@ class Kalman():
         self.measurements = np.matrix([px, py, phi, speed, yawrate]).T
 
     
-    #def get_result(self):
-    #    return self.result
 
 

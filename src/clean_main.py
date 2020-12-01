@@ -118,7 +118,7 @@ while 1:
     pyerr = estimated_robot_pos[0][1]-robot_pos[0][1]
     aerr = estimated_robot_pos[1]-robot_pos[1]
     
-    observer.set_text("klmn-err: {} {} {}".format(pxerr, pyerr, aerr))
+    observer.set_text("klmn-err: {} {} {}\ndt: {}".format(pxerr, pyerr, aerr, dt))
     
     
     actual_position,actual_angle = start_thymio.get_position(robot_pos)

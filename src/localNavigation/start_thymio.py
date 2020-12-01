@@ -69,6 +69,9 @@ def connexion_thymio():
     time.sleep(10) # To make sure the Thymio has had time to connect
     print("Thymio is connected :)")
 
+def deconnexion_thymio():
+    th.close()
+
 
 def measure_sensor():
     global value_proximity

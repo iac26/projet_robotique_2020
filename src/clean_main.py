@@ -113,9 +113,15 @@ while 1:
     
     kalman.update_measurements(robot_pos, value_speed)
     estimated_robot_pos = kalman.estimate(dt)
+
+    pxerr = estimated_robot_pos[0][0]-robot_pos[0][0]
+    pyerr = estimated_robot_pos[0][1]-robot_pos[0][1]
+    aerr = estimated_robot_pos[1]-robot_pos[1]
+    
+    observer.set_text("klmn-err: {} {} {}".format(pxerr, pyerr, aerr))
     
     
-    actual_position,actual_angle = start_thymio.get_position(estimated_robot_pos)
+    actual_position,actual_angle = start_thymio.get_position(robot_pos)
     
     
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
@@ -140,6 +146,9 @@ while 1:
         break
     
 
+start_thymio.stop()
+
+start_thymio.deconnexion_thymio()
 
 try:
     cap.release()

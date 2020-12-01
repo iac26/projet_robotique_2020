@@ -244,6 +244,17 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_rob
             pt = np.floor(np.divide(pt, scale)).astype(int)
             frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 0, 255), thickness=-1)
     
+    fst = 0
+    
+    trajectory = np.divide(trajectory, scale).astype(int)
+    for pt in trajectory:
+        if fst == 0:
+            fst = 1
+            lpt = pt  
+        else:
+            frame = cv2.line(frame, (int(lpt[0]), int(lpt[1])), (int(pt[0]), int(pt[1])), color=(255, 0, 255), thickness=3) 
+        lpt = pt
+
     if(robot_pos[2]):
         pt = np.floor(np.divide(robot_pos[0], scale)).astype(int)
         frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(255, 0, 0), thickness=-1)
@@ -265,16 +276,7 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_rob
     font = cv2.FONT_HERSHEY_SIMPLEX 
     cv2.putText(frame, text, (10, 50), font, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
     
-    fst = 0
     
-    trajectory = np.divide(trajectory, scale).astype(int)
-    for pt in trajectory:
-        if fst == 0:
-            fst = 1
-            lpt = pt  
-        else:
-            frame = cv2.line(frame, (int(lpt[0]), int(lpt[1])), (int(pt[0]), int(pt[1])), color=(255, 0, 255), thickness=3) 
-        lpt = pt
         
     return frame
 

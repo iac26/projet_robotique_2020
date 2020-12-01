@@ -14,12 +14,6 @@ import globalNavigation
 import start_thymio
 
 
-
-
-
-
-
-
 # -------------------------------------------------- VISION INIT --------------------------------------------------
 
 #video capture object
@@ -58,8 +52,6 @@ while pointsInObstacle:
     time.sleep(0.5)
 
 trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
-#print("traject: ",trajectory)
-
 
 final = vision.debug_output(frame, robot_pos, targets, dilated_obstacles, trajectory, scale)
 
@@ -72,11 +64,8 @@ plt.gca().invert_yaxis()
 globalNavigation.printGlobalNavigation(obstacles, dilated_obstacles, interestPoints = targets, trajectory = trajectory)
 
 # ------------------------------------------------- CONNEXION --------------------------------------------------
-
 start_thymio.connexion_thymio()
-
 # ------------------------------------------------- VARIABLE INIT --------------------------------------------------
-
 value_proximity=[]
 value_acceleration=[]
 value_speed=[]
@@ -101,7 +90,7 @@ while True:
    # print("--------------------------------------------")
     #condition de fin
     time.sleep(0.1)
-    """
+    
     value_proximity,value_acceleration,value_speed=start_thymio.get_sensor_value()
     ret, frame = cap.read()
     #actual_position,actual_angle=start_thymio.get_position(frame) # upload data in global variables
@@ -135,15 +124,9 @@ while True:
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
-    """
                        
 
 
 cap.release()
-<<<<<<< Updated upstream
 cv2.destroyAllWindows()
-"""
-=======
-#cv2.destroyAllWindows()
->>>>>>> Stashed changes
+

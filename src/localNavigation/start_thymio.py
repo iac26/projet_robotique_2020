@@ -65,7 +65,7 @@ class RepeatedTimer(object):
 
 def connexion_thymio():
     global th
-    th = Thymio.serial(port="COM5", refreshing_rate=0.1)
+    th = Thymio.serial(port="COM7", refreshing_rate=0.1)
     time.sleep(10) # To make sure the Thymio has had time to connect
     print("Thymio is connected :)")
 

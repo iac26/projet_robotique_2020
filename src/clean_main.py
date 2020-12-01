@@ -28,7 +28,7 @@ import start_thymio
 
 #===== INITIALISATION =====
 try:
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
 except:
     cap = None
     
@@ -41,10 +41,13 @@ observer.stabilize(20)
 
 #TODO: AVERAGED ROBOT POS
 observer.capture()
+robot_pos = observer.find_robot()
 observer.find_scale()
+print(observer.get_scale())
 obstacles = observer.find_obstacles()
 targets = observer.find_targets()
 robot_pos = observer.find_robot()
+
 
 ####
 plt.figure()
@@ -103,14 +106,15 @@ last_time = time.time()
 
 while 1:
     time.sleep(0.1)
-    dt = time.time()-last_time
-    last_time = time.time()
+    
     value_proximity,value_acceleration,value_speed = start_thymio.measure_sensor()
     
     observer.capture()
     
     robot_pos = observer.find_robot()
     
+    dt = time.time()-last_time
+    last_time = time.time()
     kalman.update_measurements(robot_pos, value_speed)
     estimated_robot_pos = kalman.estimate(dt)
 
@@ -118,10 +122,10 @@ while 1:
     pyerr = estimated_robot_pos[0][1]-robot_pos[0][1]
     aerr = estimated_robot_pos[1]-robot_pos[1]
     
-    observer.set_text("klmn-err: {} {} {}\ndt: {}".format(pxerr, pyerr, aerr, dt))
+    observer.set_text("dt: {}".format(dt))
     
     
-    actual_position,actual_angle = start_thymio.get_position(robot_pos)
+    actual_position,actual_angle = start_thymio.get_position(estimated_robot_pos)
     
     
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
@@ -139,7 +143,7 @@ while 1:
         start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
       
 
-    final = observer.debug_output(trajectory)
+    final = observer.debug_output(trajectory, estimated_robot_pos)
     cv2.imshow('frame',final)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -147,6 +151,8 @@ while 1:
     
 
 start_thymio.stop()
+
+time.sleep(0.5)
 
 start_thymio.deconnexion_thymio()
 

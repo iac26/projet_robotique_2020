@@ -12,6 +12,10 @@ GREEN_HIGH = [77, 140, 140]
 BLUE_LOW  = [87, 129, 80]
 BLUE_HIGH = [131, 255, 255]
 
+ROBOT_LEN = 100
+
+DIL_COEFF = 85
+
 
 def cleanup_contours(contours):
     #clean contours
@@ -97,7 +101,7 @@ def detect_robot(frame, scale=1):
                 dBC = d3
                 dCA = d1
             score = abs(dAB-dCA)+abs(K*dBC - dAB)+abs(K*dBC - dCA)
-            good_cnt.append([A, B, C, score]);
+            good_cnt.append([A, B, C, score])
                        
     good_cnt = sorted(good_cnt, key = lambda x: x[3])
     
@@ -132,7 +136,7 @@ def detect_robot(frame, scale=1):
     return robot_pos, frame
 
 
-DIL_COEFF = 40
+
 
 def detect_obstacles(frame, scale=1):
     frame = frame.copy()
@@ -222,7 +226,7 @@ def detect_targets(frame, scale=1):
     return scaled_centroids, frame
 
 
-ROBOT_LEN = 100
+
 
 def detect_scale(frame):
     robot_pos, ret = detect_robot(frame)
@@ -266,12 +270,12 @@ def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_rob
     
     if(estimated_robot_pos[2]):
         pt = np.floor(np.divide(estimated_robot_pos[0], scale)).astype(int)
-        frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(255, 0, 255), thickness=-1)
+        frame = cv2.circle(frame, (pt[0], pt[1]), radius=5, color=(0, 255, 127), thickness=-1)
         pt2 = pt.copy()
         LEN = 20
         pt2[0] = int(pt[0] + scale*LEN*np.cos(estimated_robot_pos[1]))
         pt2[1] = int(pt[1] + scale*LEN*np.sin(estimated_robot_pos[1]))
-        frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(255, 0, 255), thickness=3)
+        frame = cv2.line(frame, (pt[0], pt[1]), (pt2[0], pt2[1]), color=(0, 255, 127), thickness=3)
         
     font = cv2.FONT_HERSHEY_SIMPLEX 
     cv2.putText(frame, text, (10, 50), font, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
@@ -321,9 +325,11 @@ class Observer():
     def find_scale(self):
         if(not self.robot_pos[2]):
             self.add_error("robot not found, using scale=1")
-            self.scale = 1
+            self.scale = 2.3
+            print("robot not found, using scale=1")
         else:   
             self.scale = ROBOT_LEN/self.robot_pos[3]
+            print(self.scale)
         return self.scale
     
     def find_obstacles(self):

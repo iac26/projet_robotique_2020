@@ -154,8 +154,8 @@ class Kalman():
         px = camera_data[0][0]
         py = camera_data[0][1]
         phi = camera_data[1]
-        left_speed = 0.28*thymio_data[0]
-        right_speed = 0.28*thymio_data[1]
+        left_speed = 0.327*thymio_data[1]
+        right_speed = 0.327*thymio_data[0]
 
         # Converting the left and right speed, to an average speed and yawrate
         speed = (left_speed + right_speed)/2

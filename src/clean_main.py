@@ -25,41 +25,113 @@ import start_thymio
 
 
 
-if __name__ == "__main__":
 
 #===== INITIALISATION =====
-    try:
-        cap =cv2.VideoCapture(0)
-    except:
-        cap = None
-        
+try:
+    cap = cv2.VideoCapture(0)
+except:
+    cap = None
     
-    observer = vision.Observer(cap)
-    observer.stabilize(20)
-    frame = cv2.imread("vision/images/colors.png")
-    observer.set_frame(frame)
-    observer.find_scale()
-    obstacles = observer.find_obstacles()
+
+observer = vision.Observer(cap)
+observer.stabilize(20)
+# frame = cv2.imread("vision/images/colors.png")
+# observer.set_frame(frame)
+
+
+#TODO: AVERAGED ROBOT POS
+observer.capture()
+observer.find_scale()
+obstacles = observer.find_obstacles()
+targets = observer.find_targets()
+robot_pos = observer.find_robot()
+
+
+
+visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
+targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
+
+#CHECK THAT NO POINTS ARE IN OBSTACLES
+pointsInObstacle = globalNavigation.InterestPointInObstacle(targets, visibilityGraph) 
+while pointsInObstacle:
+    print("One of the interest point is in a dilated obstacle, please replace them !")
+    targets.clear()
+    observer.capture()
     targets = observer.find_targets()
     robot_pos = observer.find_robot()
-    
-    visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
-    targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
-    trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
+    targets.insert(0, [robot_pos[0][0], robot_pos[0][1]])
+    pointsInObstacle = globalNavigation.InterestPointInObstacle(targets, visibilityGraph)
+    time.sleep(0.5)
 
-    print(observer.get_error_log())
+
+trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
+
+
+final = observer.debug_output(trajectory)
+plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
+
+plt.figure()
+plt.gca().invert_yaxis()
+globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
+
+
+
+value_proximity=[]
+value_acceleration=[]
+value_speed=[]
+actual_position=[0,0]
+actual_angle=0
+count_trajectory=1
+goal_actual=trajectory[count_trajectory]
+nb_goal=len(trajectory)
+robot_pos = []
+
+last_time = time.time()
+
+while 1:
+    time.sleep(0.1)
+    dt = time.time()-last_time
+    last_time = time.time()
+    value_proximity,value_acceleration,value_speed = start_thymio.measure_sensor()
     
+    observer.capture()
+    
+    robot_pos = observer.find_robot()
+    
+    #TIMON
+    
+    actual_position,actual_angle = start_thymio.get_position(robot_pos)
+    
+    
+    if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
+        count_trajectory+=1
+        goal_actual=trajectory[count_trajectory]
+       # print("goal has just changed, actual goal is :",goal_actual) 
+        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
+        
+
+    elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
+        start_thymio.mission_accomplished()
+
+    else:
+        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
+      
+
     final = observer.debug_output(trajectory)
-    plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
+    cv2.imshow('frame',final)
     
-    plt.figure()
-    plt.gca().invert_yaxis()
-    globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
     
-    try:
-        cap.release()
-    except:
-        pass
+
+
+try:
+    cap.release()
+    
+except:
+    pass
+
+cv2.destroyAllWindows()
 
     
     

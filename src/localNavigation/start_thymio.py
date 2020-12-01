@@ -85,7 +85,7 @@ def measure_sensor():
         if value_acceleration[i]>600:
             value_acceleration[i]=value_acceleration[i]-2**16
     
-    #return value_proximity,value_acceleration,value_speed
+    return value_proximity,value_acceleration,value_speed
 
 def get_sensor_value():
     return value_proximity,value_acceleration,value_speed

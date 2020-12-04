@@ -100,7 +100,7 @@ def detect_robot(frame, scale=1):
                 dAB = d2
                 dBC = d3
                 dCA = d1
-            score = abs(dAB-dCA)+abs(K*dBC - dAB)+abs(K*dBC - dCA)
+            score = abs(dAB-dCA)+abs(K*dBC - dAB)+abs(K*dBC - dCA)/np.linalg.norm(dAB)
             good_cnt.append([A, B, C, score])
                        
     good_cnt = sorted(good_cnt, key = lambda x: x[3])

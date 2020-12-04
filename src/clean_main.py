@@ -28,15 +28,16 @@ import start_thymio
 
 #===== INITIALISATION =====
 try:
-    cap = cv2.VideoCapture(1)
+    #cap = cv2.VideoCapture(1)
+    pass
 except:
     cap = None
     
 
 observer = vision.Observer(cap)
 observer.stabilize(20)
-# frame = cv2.imread("vision/images/colors.png")
-# observer.set_frame(frame)
+frame = cv2.imread("vision/images/colors.png")
+observer.set_frame(frame)
 
 
 #TODO: AVERAGED ROBOT POS

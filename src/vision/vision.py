@@ -136,8 +136,6 @@ def detect_robot(frame, scale=1):
     return robot_pos, frame
 
 
-
-
 def detect_obstacles(frame, scale=1):
     frame = frame.copy()
     red_low = np.array(RED_LOW, np.uint8)
@@ -174,9 +172,61 @@ def detect_obstacles(frame, scale=1):
     
     for i in range(len(dil_contour)):
         cv2.drawContours(black, dil_contour, i, (255), -1)
+    
+    #find contours
+    
+    contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
+    
+    clean_dil_contours = cleanup_contours(contours)
+
+    scaled_contours = []
+    for cnt in clean_dil_contours:
+        ncnt = []
+        for pt in cnt:
+            frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
+            ncnt.append(pt[0])
+        scaled_contours.append(np.multiply(ncnt, scale).astype(int))
+    
+    
+    return scaled_contours, original_contours, frame
+
+
+def detect_obstacles_old(frame, scale=1):
+    frame = frame.copy()
+    red_low = np.array(RED_LOW, np.uint8)
+    red_high = np.array(RED_HIGH, np.uint8)
+    
+    clean_contours = find_color(frame, red_low, red_high)
+            
+    original_contours = []
+    dil_contour = []
+    for cnt in clean_contours:
+        mom = cv2.moments(cnt)
+        ncnt = []
+        ocnt = []
+        if mom["m00"] != 0:
+            cx = int(mom["m10"] / mom["m00"])
+            cy = int(mom["m01"] / mom["m00"])
+            C = np.array([cx, cy])
+            for pt in cnt:
+                N = pt-C
+                N = N/np.linalg.norm(N)
+                npt = (pt+DIL_COEFF/scale*N).astype(int)
+                ncnt.append(npt)
+                ocnt.append(pt[0])
+            dil_contour.append(np.array(ncnt))
+            original_contours.append(np.multiply(ocnt, scale).astype(int))
+        else:
+            pass
+        
         
     
+    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
     
+    black = np.zeros(frame.shape[:2], dtype=np.uint8)
+    
+    for i in range(len(dil_contour)):
+        cv2.drawContours(black, dil_contour, i, (255), -1)
     
     #find contours
     

@@ -14,7 +14,7 @@ BLUE_HIGH = [131, 255, 255]
 
 ROBOT_LEN = 100
 
-DIL_COEFF = 85
+DIL_COEFF = 15
 
 
 def cleanup_contours(contours):
@@ -142,38 +142,27 @@ def detect_obstacles(frame, scale=1):
     red_high = np.array(RED_HIGH, np.uint8)
     
     clean_contours = find_color(frame, red_low, red_high)
+
+    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
             
     original_contours = []
-    dil_contour = []
     for cnt in clean_contours:
-        mom = cv2.moments(cnt)
-        ncnt = []
         ocnt = []
-        if mom["m00"] != 0:
-            cx = int(mom["m10"] / mom["m00"])
-            cy = int(mom["m01"] / mom["m00"])
-            C = np.array([cx, cy])
-            for pt in cnt:
-                N = pt-C
-                N = N/np.linalg.norm(N)
-                npt = (pt+DIL_COEFF/scale*N).astype(int)
-                ncnt.append(npt)
-                ocnt.append(pt[0])
-            dil_contour.append(np.array(ncnt))
-            original_contours.append(np.multiply(ocnt, scale).astype(int))
-        else:
-            pass
+        for pt in cnt:
+            ocnt.append(pt[0])
+        original_contours.append(np.multiply(ocnt, scale).astype(int))
         
-        
-    
-    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
     
     black = np.zeros(frame.shape[:2], dtype=np.uint8)
     
-    for i in range(len(dil_contour)):
-        cv2.drawContours(black, dil_contour, i, (255), -1)
+    for i in range(len(original_contours)):
+        cv2.drawContours(black, original_contours, i, (255), -1)
     
-    #find contours
+    # dilatation
+    kernel = np.ones((DIL_COEFF,DIL_COEFF),np.uint8)
+    black = cv2.dilate(black, kernel, iterations = 15)
+
+    plt.imshow(black)
     
     contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
     

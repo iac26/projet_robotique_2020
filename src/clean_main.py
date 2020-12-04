@@ -34,14 +34,14 @@ except:
     cap = None
     
 
-observer = vision.Observer(cap)
+observer = vision.Observer(None)
 observer.stabilize(20)
 frame = cv2.imread("vision/images/colors.png")
 observer.set_frame(frame)
 
 
 #TODO: AVERAGED ROBOT POS
-observer.capture()
+#observer.capture()
 robot_pos = observer.find_robot()
 observer.find_scale()
 print(observer.get_scale())

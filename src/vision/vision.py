@@ -237,8 +237,11 @@ def detect_obstacles(frame, scale=1):
         original_contours.append(np.multiply(ocnt, scale).astype(int))
         
     
+
+    ## DILATATION
     black = np.zeros(frame.shape[:2], dtype=np.uint8)
     
+
     for i in range(len(clean_contours)):
         cv2.drawContours(black, clean_contours, i, (255), -1)
 

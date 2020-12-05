@@ -14,14 +14,15 @@ BLUE_HIGH = [131, 255, 255]
 
 ROBOT_LEN = 100
 
-DIL_COEFF = 120
+DIL_COEFF = 100
 EXP_RATIO = 60
 
 
-def cleanup_contours(contours):
+def cleanup_contours(contours, mode=0):
     #clean contours
     AREA_THRESH = 100
     MERGE_THRESH = 0.04
+    EPSILON = 50
     
     clean_contours = []
     
@@ -32,7 +33,10 @@ def cleanup_contours(contours):
             #hull = cv2.convexHull(cnt)
             hull = cnt
             #lower poly approx
-            epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
+            if not mode:
+                epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
+            else:
+                epsilon = EPSILON
             approx = cv2.approxPolyDP(hull,epsilon,True)
             
             clean_contours.append(approx)
@@ -186,7 +190,6 @@ def detect_obstacles(frame, scale=1):
         cv2.drawContours(black, dil_contour, i, (255), -1)
 
     plt.imshow(frame)
-    plt.imshow(black)
     
     #find contours
     

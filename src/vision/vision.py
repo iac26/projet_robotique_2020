@@ -14,7 +14,8 @@ BLUE_HIGH = [131, 255, 255]
 
 ROBOT_LEN = 100
 
-DIL_COEFF = 15
+DIL_COEFF = 120
+EXP_RATIO = 60
 
 
 def cleanup_contours(contours):
@@ -137,6 +138,75 @@ def detect_robot(frame, scale=1):
 
 
 def detect_obstacles(frame, scale=1):
+    frame = frame.copy()
+    red_low = np.array(RED_LOW, np.uint8)
+    red_high = np.array(RED_HIGH, np.uint8)
+    
+    clean_contours = find_color(frame, red_low, red_high)
+            
+    original_contours = []
+    dil_contour = []
+    for cnt in clean_contours:
+        ncnt = []
+        ocnt = []
+        cnt = list(cnt)
+        cnt.append(cnt[0])
+        print(cnt)
+        for i, _ in enumerate(cnt[0:-1]):
+            pt1 = cnt[i][0]
+            pt2 = cnt[i+1][0]
+            seg = pt2-pt1
+            d = seg/np.linalg.norm(seg)
+            n = np.array([-seg[1], seg[0]])/np.linalg.norm(seg)
+
+
+
+            npt1 = (pt1+DIL_COEFF/scale*n - EXP_RATIO/scale*d).astype(int)
+            npt2 = (pt2+DIL_COEFF/scale*n + EXP_RATIO/scale*d).astype(int)
+
+            frame = cv2.circle(frame, (npt1[0], npt1[1]), radius=5, color=(0, 0, 255), thickness=-1)
+            frame = cv2.circle(frame, (npt2[0], npt2[1]), radius=5, color=(0, 127, 255), thickness=-1)
+
+            ncnt.append(npt1)
+            ncnt.append(npt2)
+            ocnt.append(cnt[i][0])
+
+        ocnt.append(cnt[-1][0])
+        
+        dil_contour.append(np.array(ncnt))
+        original_contours.append(np.multiply(ocnt, scale).astype(int))
+        
+        
+    
+    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
+    
+    black = np.zeros(frame.shape[:2], dtype=np.uint8)
+    
+    for i in range(len(dil_contour)):
+        cv2.drawContours(black, dil_contour, i, (255), -1)
+
+    plt.imshow(frame)
+    plt.imshow(black)
+    
+    #find contours
+    
+    contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
+    
+    clean_dil_contours = cleanup_contours(contours)
+
+    scaled_contours = []
+    for cnt in clean_dil_contours:
+        ncnt = []
+        for pt in cnt:
+            frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
+            ncnt.append(pt[0])
+        scaled_contours.append(np.multiply(ncnt, scale).astype(int))
+    
+    
+    return scaled_contours, original_contours, frame
+
+
+def detect_obstacles_romain(frame, scale=1):
     frame = frame.copy()
     red_low = np.array(RED_LOW, np.uint8)
     red_high = np.array(RED_HIGH, np.uint8)

@@ -87,7 +87,6 @@ kalman = Extended_Kalman_Filter.Kalman(robot_pos)
 
 start_thymio.connexion_thymio()
 
-
 value_proximity=[]
 value_acceleration=[]
 value_speed=[]

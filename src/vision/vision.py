@@ -6,8 +6,8 @@ import time
 RED_LOW  = [150, 100, 100]
 RED_HIGH = [179, 255, 255]
 
-GREEN_LOW  = [41, 32, 0]
-GREEN_HIGH = [77, 140, 140]
+GREEN_LOW  = [41, 64, 0]
+GREEN_HIGH = [85, 140, 140]
 
 BLUE_LOW  = [87, 129, 80]
 BLUE_HIGH = [131, 255, 255]

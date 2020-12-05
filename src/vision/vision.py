@@ -17,12 +17,14 @@ ROBOT_LEN = 100
 DIL_COEFF = 100
 EXP_RATIO = 60
 
+DIL_COEFF_K = 15
+
 
 def cleanup_contours(contours, mode=0):
     #clean contours
     AREA_THRESH = 100
     MERGE_THRESH = 0.04
-    EPSILON = 50
+    EPSILON = 40
     
     clean_contours = []
     
@@ -237,18 +239,23 @@ def detect_obstacles_romain(frame, scale=1):
     
     black = np.zeros(frame.shape[:2], dtype=np.uint8)
     
-    for i in range(len(original_contours)):
-        cv2.drawContours(black, original_contours, i, (255), -1)
-    
-    # dilatation
-    kernel = np.ones((DIL_COEFF,DIL_COEFF),np.uint8)
-    black = cv2.dilate(black, kernel, iterations = 15)
+    for i in range(len(clean_contours)):
+        cv2.drawContours(black, clean_contours, i, (255), -1)
 
     plt.imshow(black)
     
+    # dilatation
+    kernel = np.ones((DIL_COEFF_K,DIL_COEFF_K),np.uint8)
+    black = cv2.dilate(black, kernel, iterations = 15)
+
+    plt.figure()
+
+    plt.imshow(black)
+    
+    
     contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
     
-    clean_dil_contours = cleanup_contours(contours)
+    clean_dil_contours = cleanup_contours(contours, 1)
 
     scaled_contours = []
     for cnt in clean_dil_contours:
@@ -256,6 +263,7 @@ def detect_obstacles_romain(frame, scale=1):
         for pt in cnt:
             frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
             ncnt.append(pt[0])
+
         scaled_contours.append(np.multiply(ncnt, scale).astype(int))
     
     
@@ -454,7 +462,7 @@ class Observer():
         return self.scale
     
     def find_obstacles(self):
-        self.obstacles_dilated, self.obstacles, ret = detect_obstacles(self.frame, self.scale)
+        self.obstacles_dilated, self.obstacles, ret = detect_obstacles_romain(self.frame, self.scale)
         return self.obstacles_dilated
     
     def find_targets(self):

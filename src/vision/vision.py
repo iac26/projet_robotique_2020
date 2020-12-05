@@ -6,21 +6,25 @@ import time
 RED_LOW  = [150, 100, 100]
 RED_HIGH = [179, 255, 255]
 
-GREEN_LOW  = [41, 32, 0]
-GREEN_HIGH = [77, 140, 140]
+GREEN_LOW  = [41, 64, 0]
+GREEN_HIGH = [85, 140, 140]
 
 BLUE_LOW  = [87, 129, 80]
 BLUE_HIGH = [131, 255, 255]
 
 ROBOT_LEN = 100
 
-DIL_COEFF = 85
+DIL_COEFF = 100
+EXP_RATIO = 60
+
+DIL_COEFF_K = 15
 
 
-def cleanup_contours(contours):
+def cleanup_contours(contours, mode=0):
     #clean contours
     AREA_THRESH = 100
     MERGE_THRESH = 0.04
+    EPSILON = 40
     
     clean_contours = []
     
@@ -31,7 +35,10 @@ def cleanup_contours(contours):
             #hull = cv2.convexHull(cnt)
             hull = cnt
             #lower poly approx
-            epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
+            if mode == 0:
+                epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
+            else:
+                epsilon = EPSILON
             approx = cv2.approxPolyDP(hull,epsilon,True)
             
             clean_contours.append(approx)
@@ -100,7 +107,7 @@ def detect_robot(frame, scale=1):
                 dAB = d2
                 dBC = d3
                 dCA = d1
-            score = abs(dAB-dCA)+abs(K*dBC - dAB)+abs(K*dBC - dCA)
+            score = abs(dAB-dCA)+abs(K*dBC - dAB)+abs(K*dBC - dCA)/np.linalg.norm(dAB)
             good_cnt.append([A, B, C, score])
                        
     good_cnt = sorted(good_cnt, key = lambda x: x[3])
@@ -136,9 +143,7 @@ def detect_robot(frame, scale=1):
     return robot_pos, frame
 
 
-
-
-def detect_obstacles(frame, scale=1):
+def detect_obstacles_alt(frame, scale=1):
     frame = frame.copy()
     red_low = np.array(RED_LOW, np.uint8)
     red_high = np.array(RED_HIGH, np.uint8)
@@ -149,22 +154,42 @@ def detect_obstacles(frame, scale=1):
     dil_contour = []
     for cnt in clean_contours:
         mom = cv2.moments(cnt)
-        ncnt = []
-        ocnt = []
         if mom["m00"] != 0:
             cx = int(mom["m10"] / mom["m00"])
             cy = int(mom["m01"] / mom["m00"])
             C = np.array([cx, cy])
-            for pt in cnt:
-                N = pt-C
-                N = N/np.linalg.norm(N)
-                npt = (pt+DIL_COEFF/scale*N).astype(int)
-                ncnt.append(npt)
-                ocnt.append(pt[0])
-            dil_contour.append(np.array(ncnt))
-            original_contours.append(np.multiply(ocnt, scale).astype(int))
         else:
-            pass
+            C = np.array([0, 0])
+        ncnt = []
+        ocnt = []
+        cnt = list(cnt)
+        cnt.append(cnt[0])
+        print(cnt)
+        for i, _ in enumerate(cnt[0:-1]):
+            pt1 = cnt[i][0]
+            pt2 = cnt[i+1][0]
+            seg = pt2-pt1
+            d = seg/np.linalg.norm(seg)
+            n = np.array([-seg[1], seg[0]])/np.linalg.norm(seg)
+
+            N = pt1-C
+            N = N/np.linalg.norm(N)
+            npt = (pt1+(DIL_COEFF+EXP_RATIO/2)/scale*N).astype(int)
+
+            npt1 = (pt1+DIL_COEFF/scale*n - EXP_RATIO/scale*d).astype(int)
+            npt2 = (pt2+DIL_COEFF/scale*n + EXP_RATIO/scale*d).astype(int)
+
+            frame = cv2.circle(frame, (npt[0], npt[1]), radius=5, color=(127, 0, 255), thickness=-1)
+            frame = cv2.circle(frame, (npt1[0], npt1[1]), radius=5, color=(0, 0, 255), thickness=-1)
+            frame = cv2.circle(frame, (npt2[0], npt2[1]), radius=5, color=(0, 127, 255), thickness=-1)
+
+            ncnt.append(npt)
+            ncnt.append(npt1)
+            ncnt.append(npt2)
+            ocnt.append(cnt[i][0])
+        
+        dil_contour.append(np.array(ncnt))
+        original_contours.append(np.multiply(ocnt, scale).astype(int))
         
         
     
@@ -174,15 +199,14 @@ def detect_obstacles(frame, scale=1):
     
     for i in range(len(dil_contour)):
         cv2.drawContours(black, dil_contour, i, (255), -1)
-        
-    
-    
+
+    plt.imshow(frame)
     
     #find contours
     
     contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
     
-    clean_dil_contours = cleanup_contours(contours)
+    clean_dil_contours = cleanup_contours(contours, 1)
 
     scaled_contours = []
     for cnt in clean_dil_contours:
@@ -190,6 +214,59 @@ def detect_obstacles(frame, scale=1):
         for pt in cnt:
             frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
             ncnt.append(pt[0])
+        scaled_contours.append(np.multiply(ncnt, scale).astype(int))
+    
+    
+    return scaled_contours, original_contours, frame
+
+
+def detect_obstacles(frame, scale=1):
+    frame = frame.copy()
+    red_low = np.array(RED_LOW, np.uint8)
+    red_high = np.array(RED_HIGH, np.uint8)
+    
+    clean_contours = find_color(frame, red_low, red_high)
+
+    cv2.drawContours(frame, clean_contours, -1, (0,255,0), 3)
+            
+    original_contours = []
+    for cnt in clean_contours:
+        ocnt = []
+        for pt in cnt:
+            ocnt.append(pt[0])
+        original_contours.append(np.multiply(ocnt, scale).astype(int))
+        
+    
+
+    ## DILATATION
+    black = np.zeros(frame.shape[:2], dtype=np.uint8)
+    
+
+    for i in range(len(clean_contours)):
+        cv2.drawContours(black, clean_contours, i, (255), -1)
+
+    plt.imshow(black)
+    
+    # dilatation
+    kernel = np.ones((DIL_COEFF_K,DIL_COEFF_K),np.uint8)
+    black = cv2.dilate(black, kernel, iterations = 15)
+
+    plt.figure()
+
+    plt.imshow(black)
+    
+    
+    contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
+    
+    clean_dil_contours = cleanup_contours(contours, 1)
+
+    scaled_contours = []
+    for cnt in clean_dil_contours:
+        ncnt = []
+        for pt in cnt:
+            frame = cv2.circle(frame, (pt[0][0], pt[0][1]), radius=5, color=(0, 0, 255), thickness=-1)
+            ncnt.append(pt[0])
+
         scaled_contours.append(np.multiply(ncnt, scale).astype(int))
     
     

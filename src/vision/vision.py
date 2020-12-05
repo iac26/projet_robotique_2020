@@ -33,7 +33,7 @@ def cleanup_contours(contours, mode=0):
             #hull = cv2.convexHull(cnt)
             hull = cnt
             #lower poly approx
-            if not mode:
+            if mode == 0:
                 epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
             else:
                 epsilon = EPSILON
@@ -151,6 +151,13 @@ def detect_obstacles(frame, scale=1):
     original_contours = []
     dil_contour = []
     for cnt in clean_contours:
+        mom = cv2.moments(cnt)
+        if mom["m00"] != 0:
+            cx = int(mom["m10"] / mom["m00"])
+            cy = int(mom["m01"] / mom["m00"])
+            C = np.array([cx, cy])
+        else:
+            C = np.array([0, 0])
         ncnt = []
         ocnt = []
         cnt = list(cnt)
@@ -163,19 +170,21 @@ def detect_obstacles(frame, scale=1):
             d = seg/np.linalg.norm(seg)
             n = np.array([-seg[1], seg[0]])/np.linalg.norm(seg)
 
-
+            N = pt1-C
+            N = N/np.linalg.norm(N)
+            npt = (pt1+(DIL_COEFF+EXP_RATIO/2)/scale*N).astype(int)
 
             npt1 = (pt1+DIL_COEFF/scale*n - EXP_RATIO/scale*d).astype(int)
             npt2 = (pt2+DIL_COEFF/scale*n + EXP_RATIO/scale*d).astype(int)
 
+            frame = cv2.circle(frame, (npt[0], npt[1]), radius=5, color=(127, 0, 255), thickness=-1)
             frame = cv2.circle(frame, (npt1[0], npt1[1]), radius=5, color=(0, 0, 255), thickness=-1)
             frame = cv2.circle(frame, (npt2[0], npt2[1]), radius=5, color=(0, 127, 255), thickness=-1)
 
+            ncnt.append(npt)
             ncnt.append(npt1)
             ncnt.append(npt2)
             ocnt.append(cnt[i][0])
-
-        ocnt.append(cnt[-1][0])
         
         dil_contour.append(np.array(ncnt))
         original_contours.append(np.multiply(ocnt, scale).astype(int))
@@ -195,7 +204,7 @@ def detect_obstacles(frame, scale=1):
     
     contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
     
-    clean_dil_contours = cleanup_contours(contours)
+    clean_dil_contours = cleanup_contours(contours, 1)
 
     scaled_contours = []
     for cnt in clean_dil_contours:

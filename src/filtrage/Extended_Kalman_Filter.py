@@ -38,8 +38,8 @@ class Kalman():
         #print(self.Q, self.Q.shape)
 
         # Measurement Noise Covariance R
-        varCamera = 5 # Standard Deviation of Camera Measurement
-        varrot = 0.1 # Standard Deviation of rotation Measurement
+        varCamera = 4 # Standard Deviation of Camera Measurement
+        varrot = 0.05 # Standard Deviation of rotation Measurement
         varspeed = 6.15 # Standard Deviation of the speed measurement
         varyaw = 0.1 # Standard Deviation of the yawrate measurement
         self.R = np.diag([varCamera, varCamera, varrot, varspeed, varyaw])

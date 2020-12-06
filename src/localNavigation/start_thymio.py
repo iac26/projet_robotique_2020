@@ -10,17 +10,22 @@ import matplotlib.pyplot as plt
 sys.path.append("localNavigation")
 from Thymio import Thymio
 
-sys.path.append("vision")
-import vision
 ############# CONSTANTES ######################
+SENSOR_SCALE = 1500
+MEMORY_FACTOR = 10
+BASE_SPEED_HIGH = 150
+BASE_SPEED_LOW = 75
+
+KP = 100
+KI = 3.5
+KD = 8
+ERROR_SATUDATION = 10
+
 TOLERENCE_POSITION = 10
-ERROR_TOLERENCE=0.1
-THRESHOLD_DIST = 2000
+
 
 ############# GLOBAL VARIABLES ######################
-counter = 0
 value_proximity=[0,0,0,0,0,0,0]
-value_acceleration=[0,0]
 value_speed=[0,0]
 actual_position=[0,0]
 actual_angle=0
@@ -36,6 +41,9 @@ speed_avoidance_r_prev=0
 
 
 class RepeatedTimer(object):
+    """
+    definition of timer, which can be called in a fixed interval
+    """
     def __init__(self, interval, function, *args, **kwargs):
         self._timer     = None
         self.interval   = interval
@@ -64,38 +72,58 @@ class RepeatedTimer(object):
 
 
 def connexion_thymio():
+    """
+    This function should be called in order to connect Thymio
+    "Thymio is connected :)" will be sent once the connexion is successful
+    """
     global th
-    th = Thymio.serial(port="COM7", refreshing_rate=0.1)
+    th = Thymio.serial(port="COM5", refreshing_rate=0.1)
     time.sleep(10) # To make sure the Thymio has had time to connect
     print("Thymio is connected :)")
 
 def deconnexion_thymio():
+    time.sleep(1)
     th.close()
 
 
 def measure_sensor():
+    """
+    read the measurements of Thymio. The measurements 
+    datas will be stored in global variables
+    """
     global value_proximity
-    global value_acceleration
     global value_speed
 
     value_proximity=th['prox.horizontal']
-    value_acceleration=th['acc']
     value_speed=[th['motor.left.speed'],th['motor.right.speed']]
     for i in range(2):
         if value_speed[i]>600:
             value_speed[i]=value_speed[i]-2**16
-    for i in range(3):
-        if value_acceleration[i]>600:
-            value_acceleration[i]=value_acceleration[i]-2**16
     
-    return value_proximity,value_acceleration,value_speed
+    
+    return value_proximity,value_speed
 
 def get_sensor_value():
-    return value_proximity,value_acceleration,value_speed
+    """
+    The accessor function of measurements from this module.
+    return: measurements stored in global variables
+    """
+    return value_proximity,value_speed
 
 
 
 def get_position(robot_pos):
+    """
+    This function gets the variable containing the information of position 
+    and angle of this robot, unpack this variable to extract and to store 
+    these information into the global variables
+    
+    param: 
+    robot_pos :containing position of robot, angle of robot, bool whether robot is detected
+    
+    return: 
+    actual_position,actual_angle : actual position and angle of robot
+    """
     global actual_angle
     global actual_position
     global no_detection
@@ -114,10 +142,22 @@ def get_position(robot_pos):
 
 
 def calculate_error(actual_position,goal,actual_angle):
+    """
+    This function computes the error between the actual 
+    angle and the target angle, we will try to eliminate
+    this error with PID controler 
+    
+    params: 
+    actual_position,goal,actual_angle
+    
+    return: 
+    error
+    """
     global error_sum 
     global no_detection
     global error
     global error_prev
+
     goal_array = np.array([goal[0],goal[1]])
     actual_position_array = np.array([actual_position[0],actual_position[1]])
    
@@ -137,125 +177,75 @@ def calculate_error(actual_position,goal,actual_angle):
 
 
 
-""" 
-   if no_detection==False:
-        angle_b=compute_angle_goal(actual_position,goal)
-        delta_x=goal[0]-actual_position[0]
-        delta_y=goal[1]-actual_position[1]
-        if delta_x >= 0 and delta_y <= 0:
-            error=angle_b - actual_angle
-        elif delta_x <= 0 and delta_y <= 0:
-            error=-1*math.pi + angle_b - actual_angle
-        elif delta_x < 0 and delta_y > 0:
-            error=(math.pi) + angle_b - actual_angle 
-        elif delta_x > 0 and delta_y > 0:
-            error = angle_b - actual_angle 
-        error_sum = error_sum + error
-        print("actual pos: ",actual_position)
-        print("actual goal: ",goal)
-    else:
-        error=0
-"""
-
-
 def follow_the_way_to_dream(actual_position,goal,actual_angle):
-    """
-    base_speed, kp,ki à tunner
-    """
+    '''
+    This function aims to command the motors of Thymio based on
+    the angle error previously calculated.
+    
+    It has 2 parts of controls to the motor: 
+        - speed for tracking the way to goal if no obstacle is detected
+        - speed of local avoidance if the obstacle is detected
+    
+    params: 
+    actual_position,goal,actual_angle
+    '''
     global error_sum 
     global value_proximity
-    global counter
     global speed_avoidance_l_prev
     global speed_avoidance_r_prev
 
-    if no_detection==False:
-        x=np.array([0,0,0,0,0,0,0,0,0])
-        sensor_scale = 1500
+    '''
+    part 1: local avoidance motor speed control
+    Thymio will turn in order to avoid the obstacle
+    base on the proximity sensor, it uses the memory 
+    in order to "memorize" the existance of obstacle. 
+    So Thymio can turn more to avoid it.
+    
+    '''
+
+    if no_detection == False:
+        x = np.array([0,0,0,0,0,0,0,0,0])      # array containing the measurement datas and memorized speeds
+        
+        
+        # ponderation of importance of each sensor contributing the rotation [1:7] 
+        # amplitude of movement for each motor due to avoidance [8:9]
         w_l = np.array([40,  20, -20, -20, -40,  30, -10, 8, 0])
         w_r = np.array([-40, -20, 20,  20,  40, -10,  30, 0, 8])
-        x[:7]= np.array(value_proximity) / sensor_scale
-        x[7] = speed_avoidance_l_prev / 10 #10
-        x[8] = speed_avoidance_r_prev / 10 #10
+
+        x[:7]= np.array(value_proximity) / SENSOR_SCALE     # compute the roration due to obstacle
+        x[7] = speed_avoidance_l_prev / MEMORY_FACTOR       # memory degradation
+        x[8] = speed_avoidance_r_prev / MEMORY_FACTOR 
 
         speed_avoidance_l = np.sum(x * w_l)
         speed_avoidance_r = np.sum(x * w_r)
         speed_avoidance_l_prev=speed_avoidance_l
         speed_avoidance_r_prev=speed_avoidance_r
 
-        if x[7] != 0 or x[8] != 0:
-            base_speed = 150
-        else : 
-            base_speed = 75 
 
+        #if memory to abstacle avoidance mode is still existing, higher basis speed to pass through
+        if x[7] != 0 or x[8] != 0:
+            base_speed = BASE_SPEED_HIGH
+        else : 
+            base_speed = BASE_SPEED_LOW
 
         error = calculate_error(actual_position,goal,actual_angle)
-        print("error: ",error)
-        """
-        if any(np.array(value_proximity) > 3000) :
-            #counter=20
-
-        if counter > 0:
-            counter -= 1
-            print("counter:",counter)
-            kp = 5
-            ki = 0
-            base_speed = 100 #75
-
-
-        else:
-            kp = 100
-            ki = 5
-            base_speed = 50
-        """
-
         
-        kp = 100
-        ki = 3.5
-        kd = 8
- 
-        error_sat = 10
 
-        if error_sum>error_sat:
-            error_sum=error_sat
-        if error_sum<-error_sat:
-            error_sum=-error_sat
+        if error_sum > ERROR_SATUDATION:
+            error_sum = ERROR_SATUDATION
+        if error_sum < -ERROR_SATUDATION:
+            error_sum = -ERROR_SATUDATION
         
-        print("error_sum: ",error_sum)
+        
+        # Compute the speed relative to PID controler
+        vitesse_PID = KP * error + KI * error_sum + KD *(error-error_prev)
 
-        vitesse_PID = kp*error+ki*error_sum + kd *(error-error_prev)
-
+        # combining the final speed 
         speed_l = base_speed + vitesse_PID + speed_avoidance_l
         speed_r = base_speed - vitesse_PID + speed_avoidance_r
-        
-
-        print("speed left: ",speed_l)
-        print("speed right: ",speed_r)
 
         move(int(speed_l),int(speed_r))
-
-        """
-        if obstacles_bool:
-            direction = value_proximity.index(max(value_proximity[0:5]))
-            if direction == 0 or direction == 1:
-                speed_l_a= speed_a
-                speed_r_a= -speed_a
-            if direction == 3 or direction == 4:
-                speed_l_a= -speed_a
-                speed_r_a= speed_a
-            if direction == 2 :
-                speed_l_a= -speed_a
-                speed_r_a= speed_a
-            speed_final_l=w_obstacle[0]*speed_l+w_obstacle[1]*speed_l_a
-            speed_final_r=w_obstacle[0]*speed_r+w_obstacle[1]*speed_r_a
-            print("error: ", error)
-            #move(0,0)
-            move(int(speed_final_l),int(speed_final_r))
-            
-        else : 
-            print("error: ", error)
-            #move(0,0)
-            move(int(speed_l),int(speed_r))
-        """    
+  
     else:
         stop()
  
@@ -293,70 +283,24 @@ def stop(verbose=False):
     th.set_var("motor.right.target", 0)
 
 
-def detect_trajectory(actual_position,goal_actual): 
-    if (abs(goal_actual[0]-actual_position[0])<=TOLERENCE_POSITION) and (abs(goal_actual[1]-actual_position[1])<=TOLERENCE_POSITION):   
+def detect_trajectory(actual_position,goal_actual):
+    """
+    param: actual_position,goal_actual
+    return: True or False depending on if Thymio is on the goal   
+    """ 
+    if (abs(goal_actual[0] - actual_position[0]) <= TOLERENCE_POSITION) and (abs(goal_actual[1] - actual_position[1]) <= TOLERENCE_POSITION) :   
         return True
     else:
         return False
 
 
 def mission_accomplished():
+    """
+    param: none
+    This function prints "Mission is accomplished!! " when Thymio has passed all the points  
+    """ 
     stop()
     print("Mission is accomplished!! ")
 
 
-"""
-def local_avoidance (actual_position,goal,actual_angle):
-    if no_detection==False:
-        calculate_error(actual_position,goal,actual_angle)
-        w_obstacle=[0.1,0.9]
-        speed_base=30
-        speed_a=100
-        speed_l, speed_r = follow_the_way_to_dream(actual_position,goal,actual_angle)
-        if obstacles_bool:
-            direction = value_proximity.index(max(value_proximity[0:5]))
-            if direction == 0 or direction == 1:
-                speed_l_a= speed_a
-                speed_r_a= -speed_a
-            if direction == 3 or direction == 4:
-                speed_l_a= -speed_a
-                speed_r_a= speed_a
-            if direction == 2 :
-                speed_l_a= -speed_a
-                speed_r_a= speed_a
-            speed_final_l=w_obstacle[0]*speed_l+w_obstacle[1]*speed_l_a
-            speed_final_r=w_obstacle[0]*speed_r+w_obstacle[1]*speed_r_a
-            print("error: ", error)
-            #move(0,0)
-            move(int(speed_final_l),int(speed_final_r))
-            
-        else : 
-            print("error: ", error)
-            #move(0,0)
-            move(int(speed_l),int(speed_r))
-    else:
-        stop()
-
-
-
-def detect_obstacles (): # upload if obstacle is present
-    global obstacles_bool
-    obstacles_bool = 0
-    for x in value_proximity[0:5]:  #front horiton prox
-        if x>=THRESHOLD_DIST:     # 3000 --> 7cm white surface
-            obstacles_bool = 1
-
-
-def avoidance_move():
-    global value_proximity
-    base_speed = 25
-    sensor_scale = 200
-    w_l = np.array([40,  20, -20, -20, -40,  30, -10])
-    w_r = np.array([-40, -20, -20,  20,  40, -10,  30])
-    x = np.array(value_proximity) / sensor_scale
-    #value_proximity
-    speed_l= base_speed + np.sum(x * w_l)
-    speed_r= base_speed + np.sum(x * w_r)
-    move(int(speed_l),int(speed_r))
-"""
 

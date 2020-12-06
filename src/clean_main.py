@@ -116,7 +116,7 @@ nb_goal=len(trajectory)
 last_time = time.time()
 print("started mainloop (press q to quit)...")
 
-while 1:
+while True:
     time.sleep(0.1)
     
     value_speed = start_thymio.measure_sensor()
@@ -135,15 +135,11 @@ while 1:
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
         count_trajectory+=1
         goal_actual=trajectory[count_trajectory]
-        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
         
 
     elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
         start_thymio.mission_accomplished()
-        break
-
-    #else:
-     #   start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
+        break   
       
     start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
     
@@ -166,17 +162,5 @@ time.sleep(0.5)
 
 start_thymio.deconnexion_thymio()
 
-
-
-cv2.destroyAllWindows()
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+cv2.destroyAllWindows()   
     

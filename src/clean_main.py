@@ -64,16 +64,12 @@ print("nb of obstacles is: ", len(obstacles))
 print("nb of targets is: ", len(targets))
 
 
-####
-#plt.figure()
-#plt.gca().invert_yaxis()
-#globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets)
-
 
 print("computing visibility graph...")
 visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
 targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
 print("OK")
+
 #CHECK THAT NO POINTS ARE IN OBSTACLES
 print("checking targets validity...")
 pointsInObstacle = globalNavigation.InterestPointInObstacle(targets, visibilityGraph) 
@@ -101,10 +97,6 @@ plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 plt.show()
 print("OK")
 
-#plt.figure()
-#plt.gca().invert_yaxis()
-
-#globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
 
 print("initializing kalman...")
 kalman = Extended_Kalman_Filter.Kalman(robot_pos)
@@ -115,11 +107,11 @@ start_thymio.connexion_thymio()
 print("OK")
 
 
+
+
 count_trajectory=1
 goal_actual=trajectory[count_trajectory]
 nb_goal=len(trajectory)
-
-
 
 last_time = time.time()
 print("started mainloop (press q to quit)...")

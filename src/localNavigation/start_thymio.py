@@ -79,7 +79,7 @@ def measure_sensor():
         if value_speed[i]>600:
             value_speed[i]=value_speed[i]-2**16
 
-    return value_proximity,value_speed
+    return value_speed
 
 
 def get_position(robot_pos):

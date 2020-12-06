@@ -114,17 +114,10 @@ print("connecting thymio...")
 start_thymio.connexion_thymio()
 print("OK")
 
-value_proximity=[]
-value_speed=[]
-actual_position=[0,0]
-actual_angle=0
+
 count_trajectory=1
 goal_actual=trajectory[count_trajectory]
 nb_goal=len(trajectory)
-robot_pos = []
-
-
-
 
 
 
@@ -134,7 +127,7 @@ print("started mainloop (press q to quit)...")
 while 1:
     time.sleep(0.1)
     
-    value_proximity,value_speed = start_thymio.measure_sensor()
+    value_speed = start_thymio.measure_sensor()
     
     observer.capture()
     

@@ -137,32 +137,24 @@ while 1:
     last_time = time.time()
     kalman.update_measurements(robot_pos, value_speed)
     estimated_robot_pos = kalman.estimate(dt)
-
-    pxerr = estimated_robot_pos[0][0]-robot_pos[0][0]
-    pyerr = estimated_robot_pos[0][1]-robot_pos[0][1]
-    aerr = estimated_robot_pos[1]-robot_pos[1]
-    
-    observer.set_text("dt: {}".format(dt))
-    
-    
     actual_position,actual_angle = start_thymio.get_position(estimated_robot_pos)
     
     
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
         count_trajectory+=1
         goal_actual=trajectory[count_trajectory]
-       # print("goal has just changed, actual goal is :",goal_actual) 
-        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
+        #start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
         
 
     elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
         start_thymio.mission_accomplished()
         break
 
-    else:
-        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
+    #else:
+     #   start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
       
-
+    start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
+    
     final = observer.debug_output(trajectory, estimated_robot_pos)
     cv2.imshow('frame',final)
     

@@ -20,7 +20,7 @@ IVISIBLE = 2
 ILENGTH = 3
 
 IX = 0
-IY = 0
+IY = 1
 
 IRIGHT = 0
 ILEFT = 1

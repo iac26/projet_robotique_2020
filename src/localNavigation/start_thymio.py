@@ -5,22 +5,23 @@ import serial
 import math
 from threading import Timer
 import numpy as np
-import matplotlib.pyplot as plt
-
 sys.path.append("localNavigation")
 from Thymio import Thymio
 
 ############# CONSTANTES ######################
+# speed factors
 SENSOR_SCALE = 1500
 MEMORY_FACTOR = 10
 BASE_SPEED_HIGH = 150
 BASE_SPEED_LOW = 75
 
+# PID controler
 KP = 100
 KI = 3.5
 KD = 8
 ERROR_SATUDATION = 10
 
+# tolerance for unprecision
 TOLERENCE_POSITION = 10
 
 
@@ -39,6 +40,7 @@ speed_avoidance_r_prev=0
 
 
 
+############# FUNCTION DEFINITIONS ######################
 
 class RepeatedTimer(object):
     """
@@ -81,8 +83,12 @@ def connexion_thymio():
     time.sleep(10) # To make sure the Thymio has had time to connect
     print("Thymio is connected :)")
 
+
 def deconnexion_thymio():
-    time.sleep(1)
+    """
+    Deconnect Thymio once mission is accomplished
+    """
+    time.sleep(1)   # wait til all datas are transmised
     th.close()
 
 
@@ -99,9 +105,9 @@ def measure_sensor():
     for i in range(2):
         if value_speed[i]>600:
             value_speed[i]=value_speed[i]-2**16
-    
-    
+
     return value_proximity,value_speed
+
 
 def get_sensor_value():
     """
@@ -194,16 +200,18 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
     global speed_avoidance_l_prev
     global speed_avoidance_r_prev
 
-    '''
-    part 1: local avoidance motor speed control
-    Thymio will turn in order to avoid the obstacle
-    base on the proximity sensor, it uses the memory 
-    in order to "memorize" the existance of obstacle. 
-    So Thymio can turn more to avoid it.
     
-    '''
 
     if no_detection == False:
+
+        '''
+        part 1: local avoidance motor speed control
+        Thymio will turn in order to avoid the obstacle
+        base on the proximity sensor, it uses the memory 
+        in order to "memorize" the existance of obstacle. 
+        So Thymio can turn more to avoid it.
+        
+        '''
         x = np.array([0,0,0,0,0,0,0,0,0])      # array containing the measurement datas and memorized speeds
         
         
@@ -227,6 +235,13 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
             base_speed = BASE_SPEED_HIGH
         else : 
             base_speed = BASE_SPEED_LOW
+
+        '''
+        part 2: PID motor speed control
+        Thymio will try to ajuste its move orientation and turn in order to aligne 
+        to the goal all the time
+        
+        '''
 
         error = calculate_error(actual_position,goal,actual_angle)
         

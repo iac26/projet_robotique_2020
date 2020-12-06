@@ -3,6 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+
+
+RED = (0, 0, 255)
+GREEN = (0, 255, 0)
+BLUE = (255, 0, 0)
+LIGHTBLUE = (255, 127, 0)
+TURQUOISE = (255, 255, 0)
+PINK = (255, 0, 255)
+ORANGE = (0, 127, 255)
+YELLOW = (0, 255, 255)
+
 RED_LOW  = [150, 100, 100]
 RED_HIGH = [179, 255, 255]
 
@@ -12,12 +23,34 @@ GREEN_HIGH = [85, 140, 140]
 BLUE_LOW  = [87, 129, 80]
 BLUE_HIGH = [131, 255, 255]
 
+
+IX=0
+IY=1
+
+H_MIN = 0
+S_MIN = 0
+V_MIN = 0
+H_MAX = 179
+S_MAX = 255
+V_MAX = 255
+
+
+AREA_THRESH = 100
+MERGE_THRESH = 0.04
+EPSILON = 40
+
+LP_MODE_REL = 0
+LP_MODE_ABS = 1
+
 ROBOT_LEN = 100
 
 DIL_COEFF = 100
 EXP_RATIO = 60
 
 DIL_COEFF_K = 8
+
+NB_VERTEX_TRIANGLE = 3
+TRIANGLE_LONG_SHORT_RATIO=2
 
 
 def cleanup_contours(contours, mode=0):
@@ -28,20 +61,13 @@ def cleanup_contours(contours, mode=0):
 
     returns     Filtered and cleaned list of contours
     """
-
-    #minimal allowed area
-    AREA_THRESH = 100 
-    #Relative merge
-    MERGE_THRESH = 0.04
-    #fixed merge
-    EPSILON = 40
     
     clean_contours = []
     
     for cnt in contours:
         # only take big enough contours
         if (cv2.contourArea(cnt) >= AREA_THRESH):
-            if mode == 0:
+            if mode == LP_MODE_REL:
                 epsilon = MERGE_THRESH*cv2.arcLength(cnt,True)
             else:
                 epsilon = EPSILON
@@ -92,8 +118,8 @@ def detect_robot(frame, scale=1):
     good_cnt = []
     
     for cnt in clean_contours:
-        if(len(cnt) == 3):
-            K = 2
+        if(len(cnt) == NB_VERTEX_TRIANGLE):
+            K = TRIANGLE_LONG_SHORT_RATIO
             A = 0
             B = 0
             C = 0

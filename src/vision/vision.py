@@ -282,7 +282,7 @@ def detect_obstacles(frame, scale=1):
     for i in range(len(clean_contours)):
         cv2.drawContours(black, clean_contours, i, (255), -1)
 
-    plt.imshow(black)
+    #plt.imshow(black)
     
     # dilatation
     kernSize = 2*int(DIL_COEFF_K/scale)+1
@@ -291,7 +291,7 @@ def detect_obstacles(frame, scale=1):
 
     plt.figure()
 
-    plt.imshow(black)
+    #plt.imshow(black)
     
     
     contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)

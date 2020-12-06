@@ -10,83 +10,6 @@ import matplotlib.pyplot as plt
 X = 0
 Y = 1
 
-# CARE SI OBSTACLES TROP PROCHES LA DILATATION VA FAIRE RENTRER DEUX OBSTACLES ENTRE EUX !! OK
-# RETURN NON SI INTEREST POINT DANS OBSTACLE DILATE
-# DILATATION PAS HOMOGENE -> ok iaco
-
-def computeCentroid(contours):
-    """Given the contours of a set of polygons, compute their respective centroids
-
-    Parameters
-    ----------
-    contours : list of list of list
-        The camera detect several obstacles/interest points
-        Each has several extremities
-        Each extremity has (x, y) coordinates
-
-    Returns
-    -------
-    centroids : list of list
-        Each polygon has a centroid composed of (x, y) coordinates
-    """
-
-    centroids = []
-    for obstacle in contours:
-        M = cv2.moments(obstacle)
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-        centroids.append([cx, cy])
-
-    return centroids
-
-
-def dilateObstacles(contours, scalingFactor):
-    """Given the contours of obstacles and the scaling factor, dilate these contours 
-
-    Parameters
-    ----------
-    contours : list of list of list
-        The camera detect several obstacles
-        Each obstacle has several extremities
-        Each extremity has (x, y) coordinates
-
-    scalingFactor : float
-        Define how much the obstacle's contours should be dilated
-        scalingFactor = 1.4 -> 40 % of dilatation
-
-    Returns
-    -------
-    contoursMapped : list of list of list
-        Same structure as contours, each extremity's coordinate has been dilated
-    """
-
-    # Compute centroid of each obstacle
-    centroids = computeCentroid(contours)
-
-    
-    # For each obstacle, map the original contour points to new coordinates where (0, 0) is the centroid
-    contoursMapped = [[] for _ in range(len(contours))]
-
-    for obstacle, i in zip(contours, range(len(contours))):
-        for extremity in obstacle:
-            contoursMapped[i].append([extremity[0][X] - centroids[i][X], extremity[0][Y] - centroids[i][Y]])
-
-
-    # Scale position
-    for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
-        for j in range(len(obstacle)):
-            contoursMapped[i][j][X] *= scalingFactor
-            contoursMapped[i][j][Y] *= scalingFactor
-
-
-    # Map it back to previous coordinates by adding back position of centroids
-    for obstacle, i in zip(contoursMapped, range(len(contoursMapped))):
-        for j in range(len(obstacle)):
-            contoursMapped[i][j][X] = int(contoursMapped[i][j][X] + centroids[i][X])
-            contoursMapped[i][j][Y] = int(contoursMapped[i][j][Y] + centroids[i][Y])
-    
-    return contoursMapped 
-
 
 def computeVisibilityGraph(contoursMapped):
     """Given the dilated obstacles, compute the visibility graph
@@ -94,7 +17,9 @@ def computeVisibilityGraph(contoursMapped):
     Parameters
     ----------
     contoursMapped : list of list of list
-        Same structure as contours, each extremity's coordinate has been dilated
+        There are several dilated obstacles
+        Each one has several extremities
+        Each extremity has (x, y) coordinates
 
     Returns
     -------
@@ -130,6 +55,23 @@ def computeVisibilityGraph(contoursMapped):
 
 
 def InterestPointInObstacle(interestPoints, graph):
+    """Given the visibility graph and the points of interest
+       Says if some interest points are in the dilated obstacles or not
+
+    Parameters
+    ----------
+    interestPoints : list of list
+        Each point of interest has (x, y) coordinates, i.e locations where the thymio need to go
+
+    graph : object of class Graph
+        the visibility graph of our problem
+
+    Returns
+    -------
+    a boolean :
+        True if some point of interest are located in the dilated obstacles
+        False if none of the interest points are located in the dilated obstacles
+    """
 
     for point in interestPoints:
         if graph.point_in_polygon(vg.Point(point[X], point[Y])) != -1:
@@ -274,35 +216,3 @@ def printGlobalNavigation(contours, contoursMapped, possibleDisplacement = {}, i
             plt.arrow(trajectory[i-1][X], trajectory[i-1][Y], trajectory[i][X] - trajectory[i-1][X], trajectory[i][Y] - trajectory[i-1][Y], head_width=8, length_includes_head=True, color  = 'k', width = 2)
 
     plt.show()
-
-
-# --------------------------------------------------- MAIN -----------------------------------------------------
-"""
-# Vision's input : extremities of each obstacles
-contours = [np.array([[[504, 236]], [[495, 199]], [[380, 212]], [[438, 274]]], dtype=np.int32), 
-            np.array([[[170, 195]], [[254, 275]], [[296, 238]], [[235, 194]]], dtype=np.int32), 
-            np.array([[[302, 168]], [[290, 182]], [[294, 199]], [[312, 209]], [[333, 203]], [[337, 175]]], dtype=np.int32), 
-            np.array([[[228, 151]], [[301, 102]], [[219,  89]]], dtype=np.int32), 
-            np.array([[[481, 130]], [[457,  66]], [[360,  81]], [[434, 150]]], dtype=np.int32)]
-
-# Vision's input : position of point of interest -> CHECKER SI POINTS DE VISION IN POLYGON
-interestPoints = [[149, 286], [319, 272], [277, 151], [496, 171], [508, 69], [347, 52], [202, 77]]
-
-
-# Dilate obstacles and print them
-contoursMapped = dilateObstacles(contours, scalingFactor = 1.4)
-printGlobalNavigation(contours, contoursMapped)
-
-# Compute the visibility graph and print it
-g, possibleDisplacement = computeVisibilityGraph(contoursMapped)
-printGlobalNavigation(contours, contoursMapped, possibleDisplacement)
-
-# Compute trajectory going through all the points of interest and going back to the starting point
-trajectory = computeTrajectory(g, interestPoints)
-printGlobalNavigation(contours, contoursMapped, interestPoints = interestPoints, trajectory = trajectory)
-"""
-
-"""
-black_image = np.zeros((height,width,3), np.uint8)
-plt.imshow(black_image)
-"""

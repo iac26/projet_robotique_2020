@@ -19,24 +19,28 @@ BASE_SPEED_LOW = 75
 KP = 100
 KI = 3.5
 KD = 8
-ERROR_SATUDATION = 10
+ERROR_SATURATION = 10
 
 # tolerance for unprecision
 TOLERENCE_POSITION = 10
 
 
 ############# GLOBAL VARIABLES ######################
-value_proximity=[0,0,0,0,0,0,0]
-value_speed=[0,0]
-actual_position=[0,0]
-actual_angle=0
-actual_goal=[0,0]
-no_detection=False
+value_proximity=[0,0,0,0,0,0,0]  # stores horizontal proximity measurements 
+value_speed = [0,0]              # stores motors' speeds measurements 
+actual_position = [0,0]          # stores actual position  
+actual_angle = 0                 # stores actual angle with x axis 
+actual_goal = [0,0]              # stores next goal position 
+no_detection = False             # stores boolien flag for detection of obstacle.  
+
+# These variables will be used for PID controller 
 error_sum = 0
 error = 0
 error_prev = 0
-speed_avoidance_l_prev=0
-speed_avoidance_r_prev=0
+
+# These variables will be used for local avoidance (memory)
+speed_avoidance_l_prev = 0
+speed_avoidance_r_prev = 0
 
 
 
@@ -109,18 +113,9 @@ def measure_sensor():
     return value_proximity,value_speed
 
 
-def get_sensor_value():
-    """
-    The accessor function of measurements from this module.
-    return: measurements stored in global variables
-    """
-    return value_proximity,value_speed
-
-
-
 def get_position(robot_pos):
     """
-    This function gets the variable containing the information of position 
+    This function gets the result of Kalman filter, a variable containing the information of position 
     and angle of this robot, unpack this variable to extract and to store 
     these information into the global variables
     
@@ -246,10 +241,10 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
         error = calculate_error(actual_position,goal,actual_angle)
         
 
-        if error_sum > ERROR_SATUDATION:
-            error_sum = ERROR_SATUDATION
-        if error_sum < -ERROR_SATUDATION:
-            error_sum = -ERROR_SATUDATION
+        if error_sum > ERROR_SATURATION:
+            error_sum = ERROR_SATURATION
+        if error_sum < -ERROR_SATURATION:
+            error_sum = -ERROR_SATURATION
         
         
         # Compute the speed relative to PID controler

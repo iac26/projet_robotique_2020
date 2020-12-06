@@ -7,7 +7,7 @@ sys.path.append("localNavigation")
 from Thymio import Thymio
 
 ############# CONSTANTES ######################
-# speed factors
+# General usage
 X = 0
 Y = 1
 POSITION = 0
@@ -97,9 +97,9 @@ def get_position(robot_pos):
     actual_angle = 0
     actual_position = [0,0]
   
-    if robot_pos[DETECTION]==True:
-        actual_position= [robot_pos[POSITION][X],robot_pos[POSITION][Y]] 
-        actual_angle=robot_pos[ANGLE]
+    if robot_pos[DETECTION] == True:
+        actual_position = [robot_pos[POSITION][X],robot_pos[POSITION][Y]] 
+        actual_angle  =robot_pos[ANGLE]
 
     return actual_position,actual_angle
 

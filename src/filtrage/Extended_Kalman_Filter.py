@@ -14,6 +14,17 @@ ALMOST_ZERO = 0.0000001
 ALMOST_ALMOST_ZERO = 0.0000001
 CONVERSION_FACTOR = 0.32
 
+IPOS = 0
+IANGLE = 1
+IVISIBLE = 2
+ILENGTH = 3
+
+IX = 0
+IY = 1
+
+IRIGHT = 0
+ILEFT = 1
+
 
 
 class Kalman():
@@ -64,13 +75,13 @@ class Kalman():
 
         # Initial State Vector
         # The states are (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])
-        self.x = np.matrix([[int(robot_pos[0][0]), int(robot_pos[0][1]), float(robot_pos[1]), 0.0, 0.0]]).T
+        self.x = np.matrix([[int(robot_pos[IPOS][IX]), int(robot_pos[IPOS][IY]), float(robot_pos[IANGLE]), 0.0, 0.0]]).T
         #print('x =')
         #print(self.x, self.x.shape)
 
 
         # Initial measurement vector  (px, py, fi, v, w) = ([mm], [mm], [rad],[mm/s],[rad/s])  Will be mesured
-        self.measurements = np.matrix([[int(robot_pos[0][0]), int(robot_pos[0][1]), float(robot_pos[1]), 0.0, 0.0]]).T
+        self.measurements = np.matrix([[int(robot_pos[IPOS][IX]), int(robot_pos[IPOS][IY]), float(robot_pos[IANGLE]), 0.0, 0.0]]).T
         #print('measurements = ')
         #print(self.measurements)
 
@@ -155,18 +166,18 @@ class Kalman():
     def update_measurements(self, camera_data, thymio_data):
 
         # Extract the information
-        px = camera_data[0][0]
-        py = camera_data[0][1]
-        phi = camera_data[1]
-        left_speed = CONVERSION_FACTOR*thymio_data[1]
-        right_speed = CONVERSION_FACTOR*thymio_data[0]
+        px = camera_data[IPOS][IX]
+        py = camera_data[IPOS][IY]
+        phi = camera_data[IANGLE]
+        left_speed = CONVERSION_FACTOR*thymio_data[ILEFT]
+        right_speed = CONVERSION_FACTOR*thymio_data[IRIGHT]
 
         # Converting the left and right speed, to an average speed and yawrate
         speed = (left_speed + right_speed)/2
         yawrate = (right_speed - left_speed)/(ROBOT_DIAMETER) 
 
         # Store the information at the right place
-        self.camera_avilable = camera_data[2]
+        self.camera_avilable = camera_data[IVISIBLE]
         self.measurements = np.matrix([px, py, phi, speed, yawrate]).T
 
     

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Symbol, symbols, Matrix, sin, cos
 
-<<<<<<< HEAD
+# DEFINE
 ROBOT_DIAMETER = 95 #[mm]
 PX = 0
 PY = 1
@@ -14,11 +14,6 @@ ALMOST_ZERO = 0.0000001
 ALMOST_ALMOST_ZERO = 0.0000001
 CONVERSION_FACTOR = 0.32
 
-=======
-# DEFINE
-robot_diameter = 95 #[mm]
-speed_conversion_factor = 0.349   # [thymio/s] --> [mm/s]
->>>>>>> d0b92a19c218273cfa5292be992aff15baf125e3
 
 
 class Kalman():
@@ -100,7 +95,6 @@ class Kalman():
             x[V] = x[V]
             x[PHI_DOT] = ALMOST_ALMOST_ZERO # avoid numerical issues in Jacobians
         else: # otherwise
-<<<<<<< HEAD
             x[PX] = x[PX] + (x[V]/x[PHI_DOT]) * (np.sin(x[PHI_DOT]*dt+x[PHI]) - np.sin(x[PHI]))
             x[PY] = x[PY] + (x[V]/x[PHI_DOT]) * (-np.cos(x[PHI_DOT]*dt+x[PHI])+ np.cos(x[PHI]))
             x[PHI] = (x[PHI] + x[PHI_DOT]*dt + np.pi) % (2.0*np.pi) - np.pi
@@ -108,14 +102,6 @@ class Kalman():
             x[PHI_DOT] = x[PHI_DOT]
         #print('x = ')
         #print(x)
-=======
-            x[0] = x[0] + (x[3]/x[4]) * (np.sin(x[4]*dt+x[2]) - np.sin(x[2]))
-            x[1] = x[1] + (x[3]/x[4]) * (-np.cos(x[4]*dt+x[2])+ np.cos(x[2]))
-            x[2] = (x[2] + x[4]*dt + np.pi) % (2.0*np.pi) - np.pi
-            x[3] = x[3]
-            x[4] = x[4]
-        
->>>>>>> d0b92a19c218273cfa5292be992aff15baf125e3
 
         # Calculation of the Jacobian of our dynamic matrix A
         a13 = float((x[V]/x[PHI_DOT]) * (np.cos(x[PHI_DOT]*dt+x[PHI]) - np.cos(x[PHI])))
@@ -172,13 +158,8 @@ class Kalman():
         px = camera_data[0][0]
         py = camera_data[0][1]
         phi = camera_data[1]
-<<<<<<< HEAD
         left_speed = CONVERSION_FACTOR*thymio_data[1]
         right_speed = CONVERSION_FACTOR*thymio_data[0]
-=======
-        left_speed = speed_conversion_factor*thymio_data[1]
-        right_speed = speed_conversion_factor*thymio_data[0]
->>>>>>> d0b92a19c218273cfa5292be992aff15baf125e3
 
         # Converting the left and right speed, to an average speed and yawrate
         speed = (left_speed + right_speed)/2

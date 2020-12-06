@@ -28,20 +28,20 @@ import start_thymio
 
 #===== INITIALISATION =====
 try:
-    #cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     pass
 except:
     cap = None
     
 
-observer = vision.Observer(None)
+observer = vision.Observer(cap)
 observer.stabilize(20)
-frame = cv2.imread("vision/images/colors.png")
-observer.set_frame(frame)
+#frame = cv2.imread("vision/images/colors.png")
+#observer.set_frame(frame)
 
 
 #TODO: AVERAGED ROBOT POS
-#observer.capture()
+observer.capture()
 robot_pos = observer.find_robot()
 observer.find_scale()
 print(observer.get_scale())
@@ -88,7 +88,6 @@ kalman = Extended_Kalman_Filter.Kalman(robot_pos)
 start_thymio.connexion_thymio()
 
 value_proximity=[]
-value_acceleration=[]
 value_speed=[]
 actual_position=[0,0]
 actual_angle=0
@@ -107,7 +106,7 @@ last_time = time.time()
 while 1:
     time.sleep(0.1)
     
-    value_proximity,value_acceleration,value_speed = start_thymio.measure_sensor()
+    value_proximity,value_speed = start_thymio.measure_sensor()
     
     observer.capture()
     

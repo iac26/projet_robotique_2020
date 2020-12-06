@@ -165,6 +165,14 @@ def detect_robot(frame, scale=1):
 
 
 def detect_obstacles_alt(frame, scale=1):
+    """
+    this function finds the obstacles and their dilation. we use geometric calculations to dilate the obstacles.   
+    frame       standard opencv BGR image
+    scale       scale of the world
+
+    returns     dilated_contours, original_contours, frame with debug overlay
+    """
+
     frame = frame.copy()
     red_low = np.array(RED_LOW, np.uint8)
     red_high = np.array(RED_HIGH, np.uint8)
@@ -242,6 +250,14 @@ def detect_obstacles_alt(frame, scale=1):
 
 
 def detect_obstacles(frame, scale=1):
+    """
+    this function finds the obstacles and their dilation. We use openCV to dilate the obstacles  
+    frame       standard opencv BGR image
+    scale       scale of the world
+
+    returns     dilated_contours, original_contours, frame with debug overlay
+    """
+
     frame = frame.copy()
     red_low = np.array(RED_LOW, np.uint8)
     red_high = np.array(RED_HIGH, np.uint8)
@@ -295,6 +311,13 @@ def detect_obstacles(frame, scale=1):
 
 
 def detect_targets(frame, scale=1):
+    """
+    this function finds the targets 
+    frame       standard opencv BGR image
+    scale       scale of the world
+
+    returns     list of centroids of the targets, frame with debug overlay
+    """
     frame = frame.copy()
     green_low = np.array(GREEN_LOW, np.uint8)
     green_high = np.array(GREEN_HIGH, np.uint8)
@@ -327,6 +350,9 @@ def detect_targets(frame, scale=1):
 
 
 def detect_scale(frame):
+    """
+    This function calculates the scale of the world from the size of the robot
+    """
     robot_pos, ret = detect_robot(frame)
     if robot_pos[2]:
         return ROBOT_LEN/robot_pos[3]
@@ -336,6 +362,19 @@ def detect_scale(frame):
 
 
 def debug_output(frame, robot_pos, targets, obstacles, trajectory, estimated_robot_pos, text, scale):
+    """
+    This function provides a debug overlay on a frame.
+    frame       standard openCV frame
+    robot_pos   robot pos array (output of find_robot)
+    targets     list of targets
+    obstacles   list of contours
+    trajectory  list of points
+    estimated_robot_pos robot pos array (output of kalman filter)
+    text        some random text to display
+    scale       the scale of the world
+
+    returns a frame with debug overlay
+    """
     frame = frame.copy()
     for pt in targets:
         pt = np.floor(np.divide(pt, scale)).astype(int)

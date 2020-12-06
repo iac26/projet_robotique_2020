@@ -14,11 +14,11 @@ import start_thymio
 
 
 
-def main():
+def main(cam, com):
     #===== INITIALISATION =====
     print("opening capture device...")
     try:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(cam)
         print("OK")
         pass
     except:
@@ -99,7 +99,7 @@ def main():
     print("OK")
 
     print("connecting thymio...")
-    start_thymio.connexion_thymio()
+    start_thymio.connexion_thymio(com)
     print("OK")
 
 

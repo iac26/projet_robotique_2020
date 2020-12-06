@@ -80,6 +80,7 @@ plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 
 plt.figure()
 plt.gca().invert_yaxis()
+
 globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
 
 

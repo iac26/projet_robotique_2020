@@ -21,9 +21,19 @@ DIL_COEFF_K = 15
 
 
 def cleanup_contours(contours, mode=0):
-    #clean contours
-    AREA_THRESH = 100
+    """
+    This function filters contours by removing small ones and reducind the number of verices.
+    contours    opencv standard list of contours
+    mode        Vertices merge method (0=relative to arclength, 1=fixed)
+
+    returns     Filtered and cleaned list of contours
+    """
+
+    #minimal allowed area
+    AREA_THRESH = 100 
+    #Relative merge
     MERGE_THRESH = 0.04
+    #fixed merge
     EPSILON = 40
     
     clean_contours = []
@@ -31,37 +41,48 @@ def cleanup_contours(contours, mode=0):
     for cnt in contours:
         # only take big enough contours
         if (cv2.contourArea(cnt) >= AREA_THRESH):
-            #convex hull
-            #hull = cv2.convexHull(cnt)
-            hull = cnt
-            #lower poly approx
             if mode == 0:
-                epsilon = MERGE_THRESH*cv2.arcLength(hull,True)
+                epsilon = MERGE_THRESH*cv2.arcLength(cnt,True)
             else:
                 epsilon = EPSILON
-            approx = cv2.approxPolyDP(hull,epsilon,True)
-            
+            approx = cv2.approxPolyDP(cnt,epsilon,True)
             clean_contours.append(approx)
             
     return clean_contours
 
 
 def find_color(frame, hsv_low, hsv_high):
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    
+    """
+    this function finds the contours of colored areas in a frame
+    frame       standard opencv BGR image
+    hsv_low     hsv color lower boundary (np array)
+    hsv_high    hsv color upper boundary (np array)
 
-    #Using inRange to find the desired range
+    returns     Filtered and cleaned list of contours
+    """
+
+    #transform frame to HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    #this gives us a mask of the colored sections
     mask = cv2.inRange(hsv,  hsv_low, hsv_high)
     
+    #find contours
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
-    
     
     return cleanup_contours(contours)
     
 
 
-#returns an array [numpy array pos, angle, visible T/F]
+
 def detect_robot(frame, scale=1):
+    """
+    this function finds the robot in the frame. it also finds it's position, size and orientation.
+    frame       standard opencv BGR image
+    scale       scale of the world
+    
+    returns     an array [ndarray(x, y), angle, visible T/F, size in px], a frame with debug information overlay
+    """
     blue_low = np.array(BLUE_LOW, np.uint8)
     blue_high = np.array(BLUE_HIGH, np.uint8)
     frame = frame.copy()

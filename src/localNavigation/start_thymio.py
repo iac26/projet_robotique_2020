@@ -77,6 +77,7 @@ def connexion_thymio():
     print("Thymio is connected :)")
 
 def deconnexion_thymio():
+    time.sleep(1)
     th.close()
 
 

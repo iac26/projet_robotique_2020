@@ -149,17 +149,19 @@ while 1:
         break
     
 
+try:
+    cap.release()
+    
+except:
+    pass
+
 start_thymio.stop()
 
 time.sleep(0.5)
 
 start_thymio.deconnexion_thymio()
 
-try:
-    cap.release()
-    
-except:
-    pass
+
 
 cv2.destroyAllWindows()
     

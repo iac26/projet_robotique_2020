@@ -17,7 +17,7 @@ ROBOT_LEN = 100
 DIL_COEFF = 100
 EXP_RATIO = 60
 
-DIL_COEFF_K = 15
+DIL_COEFF_K = 8
 
 
 def cleanup_contours(contours, mode=0):
@@ -285,8 +285,9 @@ def detect_obstacles(frame, scale=1):
     plt.imshow(black)
     
     # dilatation
-    kernel = np.ones((DIL_COEFF_K,DIL_COEFF_K),np.uint8)
-    black = cv2.dilate(black, kernel, iterations = 15)
+    kernSize = 2*int(DIL_COEFF_K/scale)+1
+    kernel = np.ones((kernSize,kernSize),np.uint8)
+    black = cv2.dilate(black, kernel, iterations = 10)
 
     plt.figure()
 
@@ -295,7 +296,7 @@ def detect_obstacles(frame, scale=1):
     
     contours, hierarchy = cv2.findContours(black, cv2.RETR_EXTERNAL  , cv2.CHAIN_APPROX_SIMPLE)
     
-    clean_dil_contours = cleanup_contours(contours, 1)
+    clean_dil_contours = cleanup_contours(contours)
 
     scaled_contours = []
     for cnt in clean_dil_contours:
@@ -499,7 +500,7 @@ class Observer():
         return self.scale
     
     def set_text(self, text):
-        self.text = text;
+        self.text = text
     
     def debug_output(self, trajectory, estimated_robot_pos=[np.array([0, 0]), 0, False, 0]):
         frame = debug_output(self.frame, self.robot_pos, self.targets, self.obstacles_dilated, trajectory, estimated_robot_pos, self.text, self.scale)

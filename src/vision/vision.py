@@ -464,10 +464,10 @@ class Observer():
         if(not self.robot_pos[2]):
             self.add_error("robot not found, using scale=1")
             self.scale = 2.3
-            print("robot not found, using scale=1")
+            #print("robot not found, using scale=1")
         else:   
             self.scale = ROBOT_LEN/self.robot_pos[3]
-            print(self.scale)
+            #print(self.scale)
         return self.scale
     
     def find_obstacles(self):

@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 26 12:38:23 2020
-
-@author: Iacopo
-"""
-
+print("importing modules...")
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,72 +15,104 @@ import vision
 import globalNavigation
 import Extended_Kalman_Filter
 import start_thymio
-
-
-
+print("OK")
 
 
 #===== INITIALISATION =====
+
+print("opening capture device...")
 try:
     cap = cv2.VideoCapture(0)
+    print("OK")
     pass
 except:
+    print("FAIL")
     cap = None
     
 
+
+#initialize observer and stabilize camera for 20 frames
+print("initializing capture device...")
 observer = vision.Observer(cap)
 observer.stabilize(20)
-#frame = cv2.imread("vision/images/colors.png")
-#observer.set_frame(frame)
+print("OK")
 
-
-#TODO: AVERAGED ROBOT POS
+#capture one frame and use it to find:
+# - robot
+# - scale
+# - obstacles
+# - targets
+print("capturing initial parameters...")
 observer.capture()
-robot_pos = observer.find_robot()
-observer.find_scale()
-print(observer.get_scale())
+observer.find_robot() #find robot for scale computation
+scale = observer.find_scale()
 obstacles = observer.find_obstacles()
 targets = observer.find_targets()
-robot_pos = observer.find_robot()
+robot_pos = observer.find_robot() #find robot with newly computed scale
+while not robot_pos[2]:
+    print("FAIL\nRobot not found...")
+    observer.capture()
+    observer.find_robot() #find robot for scale computation
+    scale = observer.find_scale()
+    robot_pos = observer.find_robot() #find robot with newly computed scale
+    time.sleep(1)
+
+print("OK")
+print("world scale is: ", scale)
+print("robot state is: ", robot_pos)
+print("nb of obstacles is: ", len(obstacles))
+print("nb of targets is: ", len(targets))
 
 
 ####
-plt.figure()
-plt.gca().invert_yaxis()
-globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets)
+#plt.figure()
+#plt.gca().invert_yaxis()
+#globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets)
 
 
+print("computing visibility graph...")
 visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
 targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
-
+print("OK")
 #CHECK THAT NO POINTS ARE IN OBSTACLES
+print("checking targets validity...")
 pointsInObstacle = globalNavigation.InterestPointInObstacle(targets, visibilityGraph) 
 while pointsInObstacle:
-    print("One of the interest point is in a dilated obstacle, please replace them !")
+    print("FAIL\nOne of the interest point is in a dilated obstacle, please replace them...")
     targets.clear()
     observer.capture()
     targets = observer.find_targets()
     robot_pos = observer.find_robot()
     targets.insert(0, [robot_pos[0][0], robot_pos[0][1]])
     pointsInObstacle = globalNavigation.InterestPointInObstacle(targets, visibilityGraph)
-    time.sleep(0.5)
+    time.sleep(1)
+print("OK")
 
-
+print("computing trajectory...")
 trajectory = globalNavigation.computeTrajectory(visibilityGraph, targets)
+print("OK")
 
 
+print("displaying initial information...")
 final = observer.debug_output(trajectory)
+print("OK")
+print("close plot to continue...")
 plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
+plt.show()
+print("OK")
 
-plt.figure()
-plt.gca().invert_yaxis()
+#plt.figure()
+#plt.gca().invert_yaxis()
 
-globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
+#globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
 
-
+print("initializing kalman...")
 kalman = Extended_Kalman_Filter.Kalman(robot_pos)
+print("OK")
 
+print("connecting thymio...")
 start_thymio.connexion_thymio()
+print("OK")
 
 value_proximity=[]
 value_speed=[]
@@ -103,6 +129,7 @@ robot_pos = []
 
 
 last_time = time.time()
+print("started mainloop (press q to quit)...")
 
 while 1:
     time.sleep(0.1)

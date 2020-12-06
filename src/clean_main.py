@@ -64,16 +64,12 @@ print("nb of obstacles is: ", len(obstacles))
 print("nb of targets is: ", len(targets))
 
 
-####
-#plt.figure()
-#plt.gca().invert_yaxis()
-#globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets)
-
 
 print("computing visibility graph...")
 visibilityGraph, possibleDisplacement = globalNavigation.computeVisibilityGraph(obstacles)
 targets.insert(0, [robot_pos[0][0], robot_pos[0][1]]) # the initial position of the Thymio is the starting point of the trajectory
 print("OK")
+
 #CHECK THAT NO POINTS ARE IN OBSTACLES
 print("checking targets validity...")
 pointsInObstacle = globalNavigation.InterestPointInObstacle(targets, visibilityGraph) 
@@ -101,10 +97,6 @@ plt.imshow(cv2.cvtColor(final, cv2.COLOR_BGR2RGB))
 plt.show()
 print("OK")
 
-#plt.figure()
-#plt.gca().invert_yaxis()
-
-#globalNavigation.printGlobalNavigation(observer.get_obstacles_original(), obstacles, interestPoints = targets, trajectory = trajectory)
 
 print("initializing kalman...")
 kalman = Extended_Kalman_Filter.Kalman(robot_pos)
@@ -115,16 +107,16 @@ start_thymio.connexion_thymio()
 print("OK")
 
 
+
+
 count_trajectory=1
 goal_actual=trajectory[count_trajectory]
 nb_goal=len(trajectory)
 
-
-
 last_time = time.time()
 print("started mainloop (press q to quit)...")
 
-while 1:
+while True:
     time.sleep(0.1)
     
     value_speed = start_thymio.measure_sensor()
@@ -137,32 +129,19 @@ while 1:
     last_time = time.time()
     kalman.update_measurements(robot_pos, value_speed)
     estimated_robot_pos = kalman.estimate(dt)
-
-    pxerr = estimated_robot_pos[0][0]-robot_pos[0][0]
-    pyerr = estimated_robot_pos[0][1]-robot_pos[0][1]
-    aerr = estimated_robot_pos[1]-robot_pos[1]
-    
-    observer.set_text("dt: {}".format(dt))
-    
-    
     actual_position,actual_angle = start_thymio.get_position(estimated_robot_pos)
-    
     
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
         count_trajectory+=1
         goal_actual=trajectory[count_trajectory]
-       # print("goal has just changed, actual goal is :",goal_actual) 
-        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
         
 
     elif start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory == nb_goal-1:     # if all points are finished
         start_thymio.mission_accomplished()
-        break
-
-    else:
-        start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)    
+        break   
       
-
+    start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle,estimated_robot_pos)
+    
     final = observer.debug_output(trajectory, estimated_robot_pos)
     cv2.imshow('frame',final)
     
@@ -182,17 +161,5 @@ time.sleep(0.5)
 
 start_thymio.deconnexion_thymio()
 
-
-
-cv2.destroyAllWindows()
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+cv2.destroyAllWindows()   
     

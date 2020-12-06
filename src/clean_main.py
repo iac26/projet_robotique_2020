@@ -131,7 +131,6 @@ while True:
     estimated_robot_pos = kalman.estimate(dt)
     actual_position,actual_angle = start_thymio.get_position(estimated_robot_pos)
     
-    
     if start_thymio.detect_trajectory(actual_position,goal_actual) and count_trajectory < nb_goal-1:         # upload goal 
         count_trajectory+=1
         goal_actual=trajectory[count_trajectory]
@@ -141,7 +140,7 @@ while True:
         start_thymio.mission_accomplished()
         break   
       
-    start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle)
+    start_thymio.follow_the_way_to_dream(actual_position,goal_actual,actual_angle,estimated_robot_pos)
     
     final = observer.debug_output(trajectory, estimated_robot_pos)
     cv2.imshow('frame',final)

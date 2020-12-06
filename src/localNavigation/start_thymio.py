@@ -1,25 +1,32 @@
 import sys
 import time
-import cv2
 import serial
 import math
-from threading import Timer
 import numpy as np
 sys.path.append("localNavigation")
 from Thymio import Thymio
 
 ############# CONSTANTES ######################
 # speed factors
+X = 0
+Y = 1
+POSITION = 0
+ANGLE = 1
+DETECTION = 2
 SENSOR_SCALE = 1500
 MEMORY_FACTOR = 10
 BASE_SPEED_HIGH = 150
 BASE_SPEED_LOW = 75
+NO_SPEED = 0
 
 # PID controler
 KP = 100
 KI = 3.5
 KD = 8
 ERROR_SATURATION = 10
+SATURATION_MOTOR = 500
+MEMORY_LEFT = 7
+MEMORY_RIGHT = 8
 
 # tolerance for unprecision
 TOLERENCE_POSITION = 10
@@ -27,15 +34,9 @@ TOLERENCE_POSITION = 10
 
 ############# GLOBAL VARIABLES ######################
 value_proximity=[0,0,0,0,0,0,0]  # stores horizontal proximity measurements 
-value_speed = [0,0]              # stores motors' speeds measurements 
-actual_position = [0,0]          # stores actual position  
-actual_angle = 0                 # stores actual angle with x axis 
-actual_goal = [0,0]              # stores next goal position 
-no_detection = False             # stores boolien flag for detection of obstacle.  
 
 # These variables will be used for PID controller 
 error_sum = 0
-error = 0
 error_prev = 0
 
 # These variables will be used for local avoidance (memory)
@@ -71,13 +72,12 @@ def measure_sensor():
     datas will be stored in global variables
     """
     global value_proximity
-    global value_speed
 
     value_proximity=th['prox.horizontal']
     value_speed=[th['motor.left.speed'],th['motor.right.speed']]
     for i in range(2):
-        if value_speed[i]>600:
-            value_speed[i]=value_speed[i]-2**16
+        if value_speed[i] > SATURATION_MOTOR:
+            value_speed[i] = value_speed[i] - 2**16
 
     return value_speed
 
@@ -94,21 +94,14 @@ def get_position(robot_pos):
     return: 
     actual_position,actual_angle : actual position and angle of robot
     """
-    global actual_angle
-    global actual_position
-    global no_detection
+    actual_angle = 0
+    actual_position = [0,0]
   
-    if robot_pos[2]==True:
-        no_detection= False
-        #print("robot position:",robot_pos[0])
-        #print("robot angle:",robot_pos)
-        actual_position= [robot_pos[0][0],robot_pos[0][1]] 
+    if robot_pos[DETECTION]==True:
+        actual_position= [robot_pos[POSITION][X],robot_pos[POSITION][Y]] 
+        actual_angle=robot_pos[ANGLE]
 
-        actual_angle=robot_pos[1]
-        return actual_position,actual_angle
-    else: 
-        no_detection=True
-        return actual_position,actual_angle
+    return actual_position,actual_angle
 
 
 def calculate_error(actual_position,goal,actual_angle):
@@ -124,16 +117,12 @@ def calculate_error(actual_position,goal,actual_angle):
     error
     """
     global error_sum 
-    global no_detection
-    global error
-    global error_prev
 
-    goal_array = np.array([goal[0],goal[1]])
-    actual_position_array = np.array([actual_position[0],actual_position[1]])
+    goal_array = np.array([goal[X],goal[Y]])
+    actual_position_array = np.array([actual_position[X],actual_position[Y]])
    
     direction = goal_array - actual_position_array
-    angle = np.arctan2(direction[1], direction[0])
-    error_prev = error
+    angle = np.arctan2(direction[Y], direction[X])
     error = -actual_angle + angle 
 
     if error < -np.pi:
@@ -147,7 +136,7 @@ def calculate_error(actual_position,goal,actual_angle):
 
 
 
-def follow_the_way_to_dream(actual_position,goal,actual_angle):
+def follow_the_way_to_dream(actual_position,goal,actual_angle,robot_pos):
     '''
     This function aims to command the motors of Thymio based on
     the angle error previously calculated.
@@ -159,14 +148,14 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
     params: 
     actual_position,goal,actual_angle
     '''
+    global error_prev
     global error_sum 
     global value_proximity
     global speed_avoidance_l_prev
     global speed_avoidance_r_prev
 
     
-
-    if no_detection == False:
+    if robot_pos[DETECTION] == True:
 
         '''
         part 1: local avoidance motor speed control
@@ -184,9 +173,9 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
         w_l = np.array([40,  20, -20, -20, -40,  30, -10, 8, 0])
         w_r = np.array([-40, -20, 20,  20,  40, -10,  30, 0, 8])
 
-        x[:7]= np.array(value_proximity) / SENSOR_SCALE     # compute the roration due to obstacle
-        x[7] = speed_avoidance_l_prev / MEMORY_FACTOR       # memory degradation
-        x[8] = speed_avoidance_r_prev / MEMORY_FACTOR 
+        x[:MEMORY_LEFT]= np.array(value_proximity) / SENSOR_SCALE     # compute the roration due to obstacle
+        x[MEMORY_LEFT] = speed_avoidance_l_prev / MEMORY_FACTOR       # memory degradation
+        x[MEMORY_RIGHT] = speed_avoidance_r_prev / MEMORY_FACTOR 
 
         speed_avoidance_l = np.sum(x * w_l)
         speed_avoidance_r = np.sum(x * w_r)
@@ -195,7 +184,7 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
 
 
         #if memory to abstacle avoidance mode is still existing, higher basis speed to pass through
-        if x[7] != 0 or x[8] != 0:
+        if x[MEMORY_LEFT] != NO_SPEED or x[MEMORY_RIGHT] != NO_SPEED:
             base_speed = BASE_SPEED_HIGH
         else : 
             base_speed = BASE_SPEED_LOW
@@ -218,6 +207,9 @@ def follow_the_way_to_dream(actual_position,goal,actual_angle):
         
         # Compute the speed relative to PID controler
         vitesse_PID = KP * error + KI * error_sum + KD *(error-error_prev)
+
+        # update error 
+        error_prev = error
 
         # combining the final speed 
         speed_l = base_speed + vitesse_PID + speed_avoidance_l
@@ -258,8 +250,8 @@ def stop(verbose=False):
         print("\t\t Stopping")
 
     # Setting the motor speeds
-    th.set_var("motor.left.target", 0)
-    th.set_var("motor.right.target", 0)
+    th.set_var("motor.left.target", NO_SPEED)
+    th.set_var("motor.right.target", NO_SPEED)
 
 
 def detect_trajectory(actual_position,goal_actual):
@@ -267,7 +259,7 @@ def detect_trajectory(actual_position,goal_actual):
     param: actual_position,goal_actual
     return: True or False depending on if Thymio is on the goal   
     """ 
-    if (abs(goal_actual[0] - actual_position[0]) <= TOLERENCE_POSITION) and (abs(goal_actual[1] - actual_position[1]) <= TOLERENCE_POSITION) :   
+    if (abs(goal_actual[X] - actual_position[X]) <= TOLERENCE_POSITION) and (abs(goal_actual[Y] - actual_position[Y]) <= TOLERENCE_POSITION) :   
         return True
     else:
         return False

@@ -11,10 +11,9 @@ class Kalman():
     def __init__(self, robot_pos):  
        
         # Initailise Variables
-        numstates = 5 # number of states (px, py, fi, v, w)
+        numstates = 5 # number of states (px, py, phi, v, phi_dot)
         self.camera_avilable = False
-        dt = 1.0/10.0 # Sample Rate of the Measurements is 50Hz
-        #self.dtCamera=1.0/10.0 # Sample Rate of Camera is 10Hz         # variable is not necessaire
+        dt = 1.0/10.0 # Initial sample rate is set to 50Hz
         self.P = 0
         self.Q = 0
         self.R = 0
@@ -116,9 +115,8 @@ class Kalman():
 
         # Measurement Update (Correction)
         # ===============================
-        # Measurement Function
-        hx = np.matrix([[float(x[0])],[float(x[1])],[float(x[2])],[float(x[3])],[float(x[4])]])   #Not sure why we would need it
-
+    
+        
         if self.camera_avilable: # with 10Hz, every 5th step
             JH = np.diag([1.0, 1.0, 1.0, 1.0, 1.0])
         else: # every other step
@@ -130,7 +128,7 @@ class Kalman():
 
         # Update the estimate via
         #Z = self.measurements.reshape(JH.shape[0],1)
-        y = self.measurements - (JH*hx)                         # I added JH .... not 100% sure
+        y = self.measurements - (JH*x)                         
         x = x + (K*y)
 
         # Update the error covariance

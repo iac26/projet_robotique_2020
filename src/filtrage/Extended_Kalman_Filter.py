@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Symbol, symbols, Matrix, sin, cos
 
+# DEFINE
 robot_diameter = 95 #[mm]
-speed_conversion_factor = 0.28   # [thymio/s] --> [mm/s]
+speed_conversion_factor = 0.349   # [thymio/s] --> [mm/s]
 
 
 class Kalman():
@@ -92,8 +93,7 @@ class Kalman():
             x[2] = (x[2] + x[4]*dt + np.pi) % (2.0*np.pi) - np.pi
             x[3] = x[3]
             x[4] = x[4]
-        #print('x = ')
-        #print(x)
+        
 
         # Calculate the Jacobian of the Dynamic Matrix A
         # see "Calculate the Jacobian of the Dynamic Matrix with respect to the state vector"
@@ -152,8 +152,8 @@ class Kalman():
         px = camera_data[0][0]
         py = camera_data[0][1]
         phi = camera_data[1]
-        left_speed = 0.35*thymio_data[1]
-        right_speed = 0.35*thymio_data[0]
+        left_speed = speed_conversion_factor*thymio_data[1]
+        right_speed = speed_conversion_factor*thymio_data[0]
 
         # Converting the left and right speed, to an average speed and yawrate
         speed = (left_speed + right_speed)/2

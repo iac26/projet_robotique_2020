@@ -160,7 +160,7 @@ class Kalman():
         self.camera_avilable = True
 
         # Return the state vector in the correct form, so that it can be used correctly
-        output = [np.array([x.item(0), x.item(1)]), x.item(2), self.camera_avilable]  
+        output = [np.array([x.item(PX), x.item(PY)]), x.item(PHI), self.camera_avilable]  
         return output
 
     def update_measurements(self, camera_data, thymio_data):

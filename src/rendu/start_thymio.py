@@ -47,13 +47,13 @@ speed_avoidance_r_prev = 0
 
 ############# FUNCTION DEFINITIONS ######################
 
-def connexion_thymio():
+def connexion_thymio(com):
     """
     This function should be called in order to connect Thymio
     "Thymio is connected :)" will be sent once the connexion is successful
     """
     global th
-    th = Thymio.serial(port="COM5", refreshing_rate=0.1)
+    th = Thymio.serial(port=com, refreshing_rate=0.1)
     time.sleep(10) # To make sure the Thymio has had time to connect
     print("Thymio is connected :)")
 
